@@ -29,3 +29,6 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     totalPages: number;
   };
 }
+
+// Re-export crawler types
+export * from './crawler';
