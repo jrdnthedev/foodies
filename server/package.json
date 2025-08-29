@@ -1,0 +1,13 @@
+{
+  "name": "foodies-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Express backend for Foodies application",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec \"npx tsx src/server.ts\"",
+    "build": "tsc",
+    "clean": "rimraf dist"
+  }
+}
