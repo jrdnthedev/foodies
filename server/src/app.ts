@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { getAllRecipes, createRecipe } from './controllers/recipeController.js';
-import { AppError } from './middleware/errorHandler.js';
+import routes from './routes/index';
+import { AppError } from './middleware/errorHandler';
 
 // Load environment variables
 dotenv.config();
@@ -35,22 +35,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// API info endpoint
-app.get('/api', (_req, res) => {
-  res.json({
-    message: 'Welcome to Foodies API',
-    version: '1.0.0',
-    endpoints: {
-      recipes: '/api/recipes',
-      health: '/health',
-    },
-  });
-});
-
-// Recipe routes
-app.get('/api/recipes', getAllRecipes);
-// Temporarily disabled: app.get('/api/recipes/:id', getRecipeById);
-app.post('/api/recipes', createRecipe);
+// Mount API routes
+app.use('/api', routes);
 
 // 404 handler
 app.use('*', (req, res) => {
