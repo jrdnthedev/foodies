@@ -226,7 +226,7 @@ export class YouTubeCrawler extends BaseCrawler {
         hashtags: this.extractHashtags(video.snippet.description || ''),
         mentions: this.extractMentions(video.snippet.description || ''),
       },
-      rawData: { video, stats },
+      rawData: video,
     };
   }
 
