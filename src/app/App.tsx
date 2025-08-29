@@ -1,18 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoutes } from './routes';
+import Header from '../shared/components/header/header';
 function App() {
   return (
     <div className="flex flex-col h-screen p-4">
-      <nav>
-        <ul>
-          <li>
-            <a href="/">Home</a>
-          </li>
-          <li>
-            <a href="/vendor-dashboard">Dashboard</a>
-          </li>
-        </ul>
-      </nav>
+      <Header />
       <main>
         <Router>
           <Routes>
