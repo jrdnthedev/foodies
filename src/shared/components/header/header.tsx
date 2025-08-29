@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { navLinks } from '../../../app/routes';
+import { ProtectedRoutes, type ProtectedRoute } from '../../../app/routes';
 
 export default function Header() {
   const [isHidden, setIsHidden] = useState(false);
@@ -50,11 +50,11 @@ export default function Header() {
           aria-label="main menu"
         >
           <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
-            {navLinks.map((link: { to: string; label: string }) => (
-              <li key={link.to}>
+            {ProtectedRoutes.map((link: ProtectedRoute) => (
+              <li key={link.path}>
                 <Link
-                  to={link.to}
-                  aria-current={link.to === location.pathname ? 'page' : undefined}
+                  to={link.path}
+                  aria-current={link.path === location.pathname ? 'page' : undefined}
                   className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                         block py-2 px-3 text-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500
         active:outline-none "
