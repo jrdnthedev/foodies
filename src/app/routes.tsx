@@ -1,6 +1,6 @@
-import { type JSX } from 'react';
+import { lazy, type JSX } from 'react';
 
-// const Home = lazy(() => import("../pages/Home"));
+const VendorDashboard = lazy(() => import('../domains/vendor/ui/dashboard/dashboard'));
 // const About = lazy(() => import("../pages/About"));
 
 export const ProtectedRoutes: ProtectedRoute[] = [
@@ -9,8 +9,8 @@ export const ProtectedRoutes: ProtectedRoute[] = [
     element: <>test 1</>,
   },
   {
-    path: '/about',
-    element: <>test 2</>,
+    path: '/vendor-dashboard',
+    element: <VendorDashboard />,
   },
 ];
 
