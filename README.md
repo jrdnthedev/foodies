@@ -1,14 +1,73 @@
 # Foodies - Full Stack React + Express Application
 
-A full-stack food recipe application built with React + TypeScript + Vite frontend and Express.js backend.
+A full-stack food recipe application built with React + TypeScript + Vite frontend and Express.js backend. Features include recipe management, discovery through social media crawling, and a comprehensive food content platform.
+
+## Features
+
+### Frontend (React + TypeScript + Vite)
+
+- Modern React application with TypeScript
+- Responsive design with modular component architecture
+- Domain-driven structure for scalability
+- Testing setup with comprehensive test suites
+
+### Backend (Express.js + TypeScript)
+
+- RESTful API with Express.js
+- TypeScript for type safety
+- Social media crawler for content discovery
+- Recipe management system
+- Comprehensive error handling and logging
+
+### Social Media Crawler
+
+- Multi-platform social media content crawling
+- Supported platforms: Twitter/X, Instagram, Reddit, YouTube
+- API-based and web scraping approaches
+- Configurable search terms, hashtags, and user targeting
+- Rate limiting and error handling
 
 ## Project Structure
 
-- `/src` - React frontend application
-- `/server` - Express.js backend API
-- `/public` - Static assets
+```
+├── src/                    # React frontend application
+│   ├── app/               # Main app components and routing
+│   ├── domains/           # Domain-specific modules
+│   │   ├── discovery/     # Content discovery features
+│   │   ├── user/          # User management
+│   │   ├── vendor/        # Vendor management
+│   │   └── ...            # Other domains
+│   └── shared/            # Shared components and utilities
+├── server/                # Express.js backend API
+│   ├── src/
+│   │   ├── controllers/   # API controllers
+│   │   ├── services/      # Business logic and services
+│   │   │   └── crawler/   # Social media crawler services
+│   │   ├── routes/        # API routes
+│   │   ├── types/         # TypeScript type definitions
+│   │   └── middleware/    # Express middleware
+│   └── package.json       # Backend dependencies
+└── public/                # Static assets
+```
 
 ## Development
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm or yarn
+
+### Installation
+
+```bash
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
+cd server
+npm install
+cd ..
+```
 
 ### Run Full Stack Application
 
@@ -28,72 +87,151 @@ npm run dev
 npm run dev:server
 ```
 
-## Original Vite Template Info
+## API Endpoints
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Recipes
 
-Currently, two official plugins are available:
+- `GET /api/recipes` - Get all recipes
+- `POST /api/recipes` - Create a new recipe
+- `GET /api/recipes/:id` - Get recipe by ID
+- `PUT /api/recipes/:id` - Update recipe
+- `DELETE /api/recipes/:id` - Delete recipe
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Social Media Crawler
 
-## Expanding the ESLint configuration
+- `GET /api/crawler/platforms` - Get supported platforms
+- `POST /api/crawler/crawl` - Crawl social media content
+- `GET /api/crawler/config/example/:platform?` - Get configuration examples
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Example Crawler Usage
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Get supported platforms
+curl http://localhost:3001/api/crawler/platforms
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+# Crawl Twitter for food content
+curl -X POST http://localhost:3001/api/crawler/crawl \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "TWITTER",
+    "config": {
+      "searchTerms": ["food", "recipe"],
+      "hashtags": ["foodie", "cooking"],
+      "maxPosts": 10
+    }
+  }'
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Contributing
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+### Commit Message Format
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
 ```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Types
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **build**: Changes that affect the build system or external dependencies
+- **ci**: Changes to our CI configuration files and scripts
+- **chore**: Other changes that don't modify src or test files
+- **revert**: Reverts a previous commit
+
+#### Examples
+
+```bash
+# Feature addition
+git commit -m "feat(crawler): add Instagram crawler support"
+
+# Bug fix
+git commit -m "fix(api): resolve Twitter API authentication issue"
+
+# Documentation update
+git commit -m "docs: update README with API examples"
+
+# Refactoring
+git commit -m "refactor(components): simplify recipe card component"
+
+# Breaking change
+git commit -m "feat(api)!: change crawler response format
+
+BREAKING CHANGE: crawler API now returns data in new format"
+```
+
+#### Scope Examples
+
+- `crawler`: Social media crawler functionality
+- `api`: Backend API changes
+- `ui`: Frontend UI components
+- `auth`: Authentication related changes
+- `config`: Configuration changes
+- `types`: TypeScript type definitions
+
+### Development Guidelines
+
+1. Write descriptive commit messages following the format above
+2. Include tests for new features
+3. Update documentation when adding new features
+4. Follow TypeScript best practices
+5. Use ESLint and Prettier for code formatting
+
+## Technology Stack
+
+## Technology Stack
+
+### Frontend
+
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type safety and better developer experience
+- **Vite** - Fast build tool and development server
+- **ESLint & Prettier** - Code linting and formatting
+
+### Backend
+
+- **Express.js** - Web application framework
+- **TypeScript** - Type safety for backend code
+- **Node.js** - JavaScript runtime
+
+### Social Media Crawler
+
+- **Cheerio** - Server-side HTML parsing
+- **Puppeteer** - Web scraping and automation
+- **Platform APIs** - Direct integration with social media APIs
+
+## Environment Variables
+
+Create a `.env` file in the server directory:
+
+```env
+# Social Media API Keys (optional)
+TWITTER_BEARER_TOKEN=your_twitter_bearer_token
+YOUTUBE_API_KEY=your_youtube_api_key
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_SECRET=your_reddit_client_secret
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+```
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support and questions, please open an issue in the GitHub repository.

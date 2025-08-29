@@ -90,7 +90,7 @@ export class TwitterCrawler extends BaseCrawler {
         const userMap = new Map(users.map((user: TwitterUser) => [user.id, user]));
 
         for (const tweet of data.data) {
-          const author = userMap.get(tweet.author_id);
+          const author = tweet.author_id ? userMap.get(tweet.author_id) : undefined;
           const post = this.parseApiTweet(tweet, author);
           posts.push(post);
         }
@@ -158,11 +158,11 @@ export class TwitterCrawler extends BaseCrawler {
         likes: tweet.public_metrics?.like_count || 0,
         shares: tweet.public_metrics?.retweet_count || 0,
         comments: tweet.public_metrics?.reply_count || 0,
-        views: tweet.public_metrics?.impression_count || 0,
+        views: 0, // impression_count not available in this API response
       },
       metadata: {
         postUrl: `https://twitter.com/${author?.username}/status/${tweet.id}`,
-        timestamp: new Date(tweet.created_at),
+        timestamp: tweet.created_at ? new Date(tweet.created_at) : new Date(),
         hashtags: this.extractHashtags(tweet.text),
         mentions: this.extractMentions(tweet.text),
       },
