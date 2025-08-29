@@ -4,16 +4,16 @@ import Header from '../shared/components/header/header';
 function App() {
   return (
     <div className="flex flex-col h-screen p-4">
-      <Header />
-      <main>
-        <Router>
+      <Router>
+        <Header />
+        <main>
           <Routes>
             {ProtectedRoutes.map((route, index) => (
               <Route key={index} path={route.path} element={route.element} />
             ))}
           </Routes>
-        </Router>
-      </main>
+        </main>
+      </Router>
     </div>
   );
 }
