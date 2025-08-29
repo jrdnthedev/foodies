@@ -1,18 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoutes } from './routes';
+import Header from '../shared/components/header/header';
 function App() {
   return (
-    <>
-      <nav>
-        <ul>
-          <li>
-            <a href="/">Home</a>
-          </li>
-          <li>
-            <a href="/about">About</a>
-          </li>
-        </ul>
-      </nav>
+    <div className="flex flex-col h-screen p-4">
+      <Header />
       <main>
         <Router>
           <Routes>
@@ -22,7 +14,7 @@ function App() {
           </Routes>
         </Router>
       </main>
-    </>
+    </div>
   );
 }
 

@@ -14,6 +14,11 @@ export const ProtectedRoutes: ProtectedRoute[] = [
   },
 ];
 
+export const navLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/vendor-dashboard', label: 'Dashboard' },
+];
+
 export type ProtectedRoute = {
   path: string;
   element: JSX.Element;
