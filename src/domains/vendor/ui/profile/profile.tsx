@@ -21,6 +21,32 @@ export default function Profile() {
           <p className="text-sm text-gray-500">11:30 AM - 1:30 PM</p>
           <p className="text-sm text-gray-500">No other events scheduled</p>
         </div>
+        {/* <p>
+                <strong>Claimed:</strong> {vendor.claimedBy ? 'Yes' : 'No'}
+              </p>
+
+              {vendor.socialLinks.instagram && (
+                <p>
+                  <strong>Instagram:</strong>{' '}
+                  <a href={vendor.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+                    @{vendor.socialLinks.instagram}
+                  </a>
+                </p>
+              )}
+
+              {vendor.schedule.length > 0 && (
+                <div>
+                  <strong>Schedule:</strong>
+                  <ul>
+                    {vendor.schedule.map((schedule, index) => (
+                      <li key={index}>
+                        {schedule.date}: {schedule.startTime} - {schedule.endTime} at{' '}
+                        {schedule.location}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )} */}
       </div>
     </section>
   );
