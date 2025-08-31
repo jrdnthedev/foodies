@@ -27,45 +27,18 @@ export default function VendorList() {
         <ul className="flex flex-col gap-2">
           {vendors.map((vendor) => (
             <li key={vendor.id}>
-              <h3>{vendor.name}</h3>
-              <p>
-                <strong>Type:</strong> {vendor.type}
-              </p>
-              <p>
-                <strong>Address:</strong> {vendor.location.address}
-              </p>
-              <p>
-                <strong>Claimed:</strong> {vendor.claimedBy ? 'Yes' : 'No'}
-              </p>
-
-              {vendor.socialLinks.instagram && (
-                <p>
-                  <strong>Instagram:</strong>{' '}
-                  <a href={vendor.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
-                    @{vendor.socialLinks.instagram}
-                  </a>
-                </p>
-              )}
-
-              {vendor.schedule.length > 0 && (
-                <div>
-                  <strong>Schedule:</strong>
-                  <ul>
-                    {vendor.schedule.map((schedule, index) => (
-                      <li key={index}>
-                        {schedule.date}: {schedule.startTime} - {schedule.endTime} at{' '}
-                        {schedule.location}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="rounded-lg">
+                <img src="/salad.jpg" alt="Banner" />
+              </div>
+              <h3 className="text-xl font-bold">{vendor.name}</h3>
+              <p className="text-sm text-gray-500">{vendor.type}</p>
+              <p className="text-sm text-gray-500">{vendor.location.address}</p>
             </li>
           ))}
 
           {pagination && (
             <div>
-              <p>
+              <p className="text-xs text-gray-500 italic">
                 Page {pagination.page} of {pagination.totalPages}({pagination.total} total vendors)
               </p>
             </div>
