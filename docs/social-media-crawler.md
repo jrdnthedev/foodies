@@ -84,86 +84,69 @@ REDDIT_USER_AGENT=YourAppName/1.0 by YourUsername
 GET /api/crawler/platforms
 ```
 
-### Crawl Single Platform
+### Crawl Social Media Content
 
 ```http
-POST /api/crawler/platform/:platform
+POST /api/crawler/crawl
 Content-Type: application/json
 
 {
-  "searchTerms": ["delicious food"],
-  "hashtags": ["foodie", "recipe"],
-  "maxPosts": 25
-}
-```
-
-### Search All Platforms
-
-```http
-POST /api/crawler/search
-Content-Type: application/json
-
-{
-  "searchTerms": ["viral food"],
-  "hashtags": ["foodtrend"],
-  "maxPosts": 100
-}
-```
-
-### Get Influencer Analysis
-
-```http
-POST /api/crawler/influencers?limit=10&minEngagement=100
-Content-Type: application/json
-
-{
+  "platform": "TWITTER",
   "config": {
-    "hashtags": ["foodie", "cooking"],
-    "maxPosts": 200
+    "searchTerms": ["delicious food"],
+    "hashtags": ["foodie", "recipe"],
+    "maxPosts": 25
   }
 }
+```
+
+### Get Configuration Examples
+
+```http
+GET /api/crawler/config/example
+GET /api/crawler/config/example/:platform
 ```
 
 ## 💻 Usage Examples
 
 ### Basic Search
 
-```typescript
-import { SocialMediaCrawler, SocialPlatform } from './services/crawler';
-
-const crawler = new SocialMediaCrawler({
-  reddit: { userAgent: 'MyApp/1.0' },
-});
-
-const result = await crawler.crawlPlatform(SocialPlatform.REDDIT, {
-  searchTerms: ['delicious food'],
-  maxPosts: 10,
-});
-
-console.log(`Found ${result.posts.length} posts`);
+```bash
+curl -X POST http://localhost:3001/api/crawler/crawl \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "TWITTER",
+    "config": {
+      "searchTerms": ["delicious food", "cooking tips"],
+      "hashtags": ["foodie", "recipe"],
+      "maxPosts": 25
+    }
+  }'
 ```
 
-### Multi-Platform Search
+### Search Reddit for Food Content
 
-```typescript
-const results = await crawler.crawlMultiplePlatforms(
-  [SocialPlatform.REDDIT, SocialPlatform.YOUTUBE],
-  {
-    hashtags: ['cooking', 'recipe'],
-    maxPosts: 20,
-  }
-);
+```bash
+curl -X POST http://localhost:3001/api/crawler/crawl \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "REDDIT",
+    "config": {
+      "searchTerms": ["food"],
+      "subreddits": ["food", "recipes"],
+      "maxPosts": 10
+    }
+  }'
 ```
 
-### Influencer Analysis
+### Get Configuration Examples
 
-```typescript
-const analysis = await crawler.searchAcrossAllPlatforms({
-  hashtags: ['foodie'],
-  maxPosts: 100,
-});
+```bash
+# Get all platform examples
+curl http://localhost:3001/api/crawler/config/example
 
-const topInfluencers = crawler.getTopInfluencers(analysis.allPosts, 10);
+# Get Twitter-specific example
+curl http://localhost:3001/api/crawler/config/example/twitter
 ```
 
 ## 🎯 Platform-Specific Features
@@ -289,9 +272,9 @@ Enable debug mode by setting `headless: false` in crawler options to see browser
 
 3. Try a basic search:
    ```bash
-   curl -X POST http://localhost:3001/api/crawler/platform/reddit \
+   curl -X POST http://localhost:3001/api/crawler/crawl \
      -H "Content-Type: application/json" \
-     -d '{"searchTerms": ["food"], "maxPosts": 5}'
+     -d '{"platform": "REDDIT", "config": {"searchTerms": ["food"], "maxPosts": 5}}'
    ```
 
 The social media crawler is now ready to help you gather food-related content from across social platforms! 🍽️

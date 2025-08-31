@@ -1,6 +1,6 @@
 # Foodies - Full Stack React + Express Application
 
-A full-stack food recipe application built with React + TypeScript + Vite frontend and Express.js backend. Features include recipe management, discovery through social media crawling, and a comprehensive food content platform.
+A full-stack food vendor discovery application built with React + TypeScript + Vite frontend and Express.js backend. Features include vendor management, discovery through social media crawling, and a comprehensive food vendor platform.
 
 ## Features
 
@@ -16,7 +16,7 @@ A full-stack food recipe application built with React + TypeScript + Vite fronte
 - RESTful API with Express.js
 - TypeScript for type safety
 - Social media crawler for content discovery
-- Recipe management system
+- Food vendor management system
 - Comprehensive error handling and logging
 
 ### Social Media Crawler
@@ -89,25 +89,49 @@ npm run dev:server
 
 ## API Endpoints
 
-### Recipes
+For detailed API documentation, see [docs/api.md](docs/api.md).
 
-- `GET /api/recipes` - Get all recipes
-- `POST /api/recipes` - Create a new recipe
-- `GET /api/recipes/:id` - Get recipe by ID
-- `PUT /api/recipes/:id` - Update recipe
-- `DELETE /api/recipes/:id` - Delete recipe
+**Quick Reference:**
+
+### Vendors
+
+- `GET /api/vendors` - Get all vendors (with pagination and filtering)
+- `GET /api/vendors/:id` - Get vendor by ID
+- `POST /api/vendors` - Create a new vendor
 
 ### Social Media Crawler
 
 - `GET /api/crawler/platforms` - Get supported platforms
 - `POST /api/crawler/crawl` - Crawl social media content
-- `GET /api/crawler/config/example/:platform?` - Get configuration examples
+- `GET /api/crawler/config/example` - Get configuration examples
 
-### Example Crawler Usage
+### Health & Info
+
+- `GET /health` - Health check endpoint
+- `GET /api` - API info and available endpoints
+
+## Social Media Crawler
+
+This project includes a comprehensive social media crawler that can gather food-related content from Twitter/X, Instagram, Reddit, and YouTube.
+
+For detailed crawler documentation, see [docs/social-media-crawler.md](docs/social-media-crawler.md).
+
+**Key Features:**
+
+- Multi-platform support (Twitter/X, Instagram, Reddit, YouTube)
+- Hybrid approach using APIs and web scraping
+- Flexible search by keywords, hashtags, or usernames
+- Rich data extraction with engagement metrics
+- Built-in rate limiting and error handling
+
+### Quick Start Examples
 
 ```bash
-# Get supported platforms
-curl http://localhost:3001/api/crawler/platforms
+# Get all vendors
+curl http://localhost:3001/api/vendors
+
+# Get vendor by ID
+curl http://localhost:3001/api/vendors/vendor_001
 
 # Crawl Twitter for food content
 curl -X POST http://localhost:3001/api/crawler/crawl \
@@ -121,6 +145,13 @@ curl -X POST http://localhost:3001/api/crawler/crawl \
     }
   }'
 ```
+
+For more detailed examples and complete API documentation, see [docs/api.md](docs/api.md).
+
+## Documentation
+
+- [API Documentation](docs/api.md) - Complete API reference and examples
+- [Social Media Crawler](docs/social-media-crawler.md) - Comprehensive crawler documentation
 
 ## Contributing
 
@@ -154,26 +185,27 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ```bash
 # Feature addition
-git commit -m "feat(crawler): add Instagram crawler support"
+git commit -m "feat(vendor): add vendor management system"
 
 # Bug fix
-git commit -m "fix(api): resolve Twitter API authentication issue"
+git commit -m "fix(api): resolve vendor API pagination issue"
 
 # Documentation update
-git commit -m "docs: update README with API examples"
+git commit -m "docs: update README with vendor API examples"
 
 # Refactoring
-git commit -m "refactor(components): simplify recipe card component"
+git commit -m "refactor(components): simplify vendor card component"
 
 # Breaking change
-git commit -m "feat(api)!: change crawler response format
+git commit -m "feat(api)!: change vendor response format
 
-BREAKING CHANGE: crawler API now returns data in new format"
+BREAKING CHANGE: vendor API now returns data in new format"
 ```
 
 #### Scope Examples
 
 - `crawler`: Social media crawler functionality
+- `vendor`: Food vendor management
 - `api`: Backend API changes
 - `ui`: Frontend UI components
 - `auth`: Authentication related changes
@@ -226,6 +258,13 @@ REDDIT_CLIENT_SECRET=your_reddit_client_secret
 # Server Configuration
 PORT=3001
 NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+```
+
+Create a `.env` file in the root directory for frontend:
+
+```env
+VITE_API_URL=http://localhost:3001
 ```
 
 ## License
