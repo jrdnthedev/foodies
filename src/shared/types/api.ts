@@ -14,6 +14,8 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-// Re-export types
-export * from './crawler';
-export * from './vendor';
+export interface ApiError {
+  success: false;
+  error: string;
+  message?: string;
+}

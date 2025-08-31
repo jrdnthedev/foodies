@@ -77,7 +77,73 @@ router.post('/crawl', async (req, res) => {
 });
 
 // Get crawler configuration example
-router.get('/config/example/:platform?', (req, res) => {
+router.get('/config/example', (_req, res) => {
+  const examples = {
+    [SocialPlatform.TWITTER]: {
+      platform: SocialPlatform.TWITTER,
+      config: {
+        searchTerms: ['food', 'recipe', 'cooking'],
+        hashtags: ['foodie', 'cooking', 'recipe'],
+        usernames: ['foodnetwork', 'bonappetit'],
+        maxPosts: 20,
+      },
+      options: {
+        timeout: 30000,
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+      credentials: {
+        twitter: {
+          bearerToken: 'your_bearer_token_here',
+        },
+      },
+    },
+    [SocialPlatform.REDDIT]: {
+      platform: SocialPlatform.REDDIT,
+      config: {
+        searchTerms: ['food', 'recipe'],
+        subreddits: ['food', 'recipes', 'cooking'],
+        maxPosts: 15,
+      },
+      options: {
+        timeout: 30000,
+      },
+    },
+    [SocialPlatform.INSTAGRAM]: {
+      platform: SocialPlatform.INSTAGRAM,
+      config: {
+        hashtags: ['food', 'recipe', 'cooking'],
+        usernames: ['foodnetwork'],
+        maxPosts: 10,
+      },
+      options: {
+        timeout: 30000,
+      },
+    },
+    [SocialPlatform.YOUTUBE]: {
+      platform: SocialPlatform.YOUTUBE,
+      config: {
+        searchTerms: ['cooking tutorial', 'recipe video'],
+        channelIds: ['UCbpMy0Fg74eXXkvxJrtEn3w'], // Example channel
+        maxPosts: 10,
+      },
+      options: {
+        timeout: 30000,
+      },
+      credentials: {
+        youtube: {
+          apiKey: 'your_youtube_api_key_here',
+        },
+      },
+    },
+  };
+
+  res.json({
+    message: 'Configuration examples for all platforms',
+    examples,
+  });
+});
+
+router.get('/config/example/:platform', (req, res) => {
   const { platform } = req.params;
 
   const examples = {
@@ -142,9 +208,9 @@ router.get('/config/example/:platform?', (req, res) => {
   if (platform && platform.toUpperCase() in examples) {
     res.json(examples[platform.toUpperCase() as SocialPlatform]);
   } else {
-    res.json({
-      message: 'Configuration examples for all platforms',
-      examples,
+    res.status(400).json({
+      error: `Unsupported platform: ${platform}`,
+      supportedPlatforms: Object.values(SocialPlatform),
     });
   }
 });
