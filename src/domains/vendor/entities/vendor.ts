@@ -7,6 +7,13 @@ export interface Vendor {
   type: string;
   location: Location;
   schedule: Schedule[];
-  socialLinks: string[];
+  socialLinks: {
+    instagram?: string;
+    twitter?: string | null;
+    facebook?: string;
+    website?: string;
+  };
   claimedBy: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
