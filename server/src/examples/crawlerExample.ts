@@ -1,15 +1,15 @@
-import { SocialMediaCrawler } from '../services/crawler/SocialMediaCrawler.js';
-import { SocialPlatform, CrawlerConfig } from '../types/crawler.js';
+import { SocialMediaCrawler } from '../services/crawler/SocialMediaCrawler';
+import { SocialPlatform, CrawlerConfig, ApiCredentials } from '../types/crawler';
 
 // Example usage of the Social Media Crawler
 async function runCrawlerExamples() {
   // Initialize crawler with credentials (from environment variables)
-  const credentials = {
+  const credentials: ApiCredentials = {
     twitter: {
-      bearerToken: process.env.TWITTER_BEARER_TOKEN,
+      bearerToken: process.env.TWITTER_BEARER_TOKEN ?? '',
     },
     youtube: {
-      apiKey: process.env.YOUTUBE_API_KEY,
+      apiKey: process.env.YOUTUBE_API_KEY ?? '',
     },
     reddit: {
       userAgent: 'SocialMediaCrawler/1.0',
