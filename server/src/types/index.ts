@@ -1,19 +1,3 @@
-export interface Recipe {
-  id: string;
-  title: string;
-  description: string;
-  ingredients: string[];
-  instructions: string[];
-  prepTime: number; // in minutes
-  cookTime: number; // in minutes
-  servings: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  category: string;
-  imageUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -30,5 +14,6 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-// Re-export crawler types
+// Re-export types
 export * from './crawler';
+export * from './vendor';

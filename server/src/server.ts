@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import apiRoutes from './routes/index';
 
 // Load environment variables
 dotenv.config();
@@ -18,13 +19,13 @@ app.use(
 app.use(express.json());
 
 // Simple logging
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'Foodies API is running',
@@ -33,47 +34,19 @@ app.get('/health', (req, res) => {
 });
 
 // API info endpoint
-app.get('/api', (req, res) => {
+app.get('/api', (_req, res) => {
   res.json({
     message: 'Welcome to Foodies API',
     version: '1.0.0',
     endpoints: {
-      recipes: '/api/recipes',
+      vendor: '/api/vendor',
       health: '/health',
     },
   });
 });
 
-// Simple recipes endpoint
-app.get('/api/recipes', (req, res) => {
-  const mockRecipes = [
-    {
-      id: '1',
-      title: 'Classic Caesar Salad',
-      description: 'A fresh and crispy Caesar salad with homemade dressing',
-      category: 'Salads',
-      prepTime: 15,
-      cookTime: 0,
-      servings: 4,
-      difficulty: 'easy',
-    },
-    {
-      id: '2',
-      title: 'Spaghetti Carbonara',
-      description: 'Traditional Italian pasta dish with eggs, cheese, and pancetta',
-      category: 'Pasta',
-      prepTime: 10,
-      cookTime: 15,
-      servings: 4,
-      difficulty: 'medium',
-    },
-  ];
-
-  res.json({
-    success: true,
-    data: mockRecipes,
-  });
-});
+// Mount API routes
+app.use('/api', apiRoutes);
 
 // 404 handler - using a more specific pattern
 app.use((req, res) => {
