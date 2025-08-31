@@ -3,7 +3,7 @@ import { ProtectedRoutes } from './routes';
 import Header from '../shared/components/header/header';
 function App() {
   return (
-    <div className="flex flex-col h-screen p-4">
+    <div className="flex flex-col h-screen p-4 gap-4">
       <Router>
         <Header />
         <main>
