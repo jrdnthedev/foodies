@@ -1,3 +1,7 @@
+import Card from '../../../../shared/components/card/card';
+import Link from '../../../../shared/components/link/link';
+import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
+import type { Vendor } from '../../entities/vendor';
 import useFetchVendors from '../../services/useFetchVendors';
 
 export default function VendorList() {
@@ -7,7 +11,7 @@ export default function VendorList() {
   });
 
   if (loading) {
-    return <div>Loading vendors...</div>;
+    return <LoadingStencil />;
   }
 
   if (error) {
@@ -22,17 +26,26 @@ export default function VendorList() {
   return (
     <>
       {vendors.length === 0 ? (
-        <p>No vendors found.</p>
+        <Card>
+          <p>No vendors found.</p>
+        </Card>
       ) : (
-        <ul className="flex flex-col gap-2">
-          {vendors.map((vendor) => (
+        <ul className="flex flex-col gap-4">
+          {vendors.map((vendor: Vendor) => (
             <li key={vendor.id}>
-              <div className="rounded-lg">
-                <img src="/salad.jpg" alt="Banner" />
-              </div>
-              <h3 className="text-xl font-bold">{vendor.name}</h3>
-              <p className="text-sm text-gray-500">{vendor.type}</p>
-              <p className="text-sm text-gray-500">{vendor.location.address}</p>
+              <Card>
+                <Link
+                  path={`/vendor/${vendor.id}`}
+                  styles="block hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <div className="rounded-lg">
+                    <img src="/salad.jpg" alt="Banner" />
+                  </div>
+                  <h3 className="text-xl font-bold">{vendor.name}</h3>
+                  <p className="text-sm text-gray-500">{vendor.type}</p>
+                  <p className="text-sm text-gray-500">{vendor.location.address}</p>
+                </Link>
+              </Card>
             </li>
           ))}
 
