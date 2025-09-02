@@ -6,6 +6,8 @@ export interface Location {
 export interface SocialLinks {
   instagram: string | null;
   twitter: string | null;
+  facebook?: string | null;
+  website?: string | null;
 }
 export interface Schedule {
   vendorId: string;
@@ -24,4 +26,6 @@ export interface Vendor {
   schedule: Schedule[];
   socialLinks: SocialLinks;
   claimedBy: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

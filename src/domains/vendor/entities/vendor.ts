@@ -10,8 +10,8 @@ export interface Vendor {
   socialLinks: {
     instagram?: string;
     twitter?: string | null;
-    facebook?: string;
-    website?: string;
+    facebook?: string | null;
+    website?: string | null;
   };
   claimedBy: string | null;
   createdAt?: Date;
