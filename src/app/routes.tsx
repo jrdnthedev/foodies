@@ -2,7 +2,7 @@ import { lazy, type JSX } from 'react';
 
 const VendorDashboard = lazy(() => import('../domains/vendor/ui/dashboard/dashboard'));
 const VendorProfile = lazy(() => import('../domains/vendor/ui/profile/profile'));
-// const About = lazy(() => import("../pages/About"));
+const DiscoveryDashboard = lazy(() => import('../domains/discovery/ui/dashboard/dashboard'));
 
 export const ProtectedRoutes: ProtectedRoute[] = [
   {
@@ -19,6 +19,11 @@ export const ProtectedRoutes: ProtectedRoute[] = [
     path: '/vendor/:vendorId',
     element: <VendorProfile />,
     label: 'Vendor Profile',
+  },
+  {
+    path: '/discovery',
+    element: <DiscoveryDashboard />,
+    label: 'Discovery',
   },
 ];
 
