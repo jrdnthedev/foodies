@@ -31,6 +31,13 @@ export class RedditCrawler extends BaseCrawler {
       throw new Error('Invalid configuration: At least one search term or username is required');
     }
 
+    console.log('Reddit crawler starting with config:', {
+      searchTerms: this.config.searchTerms,
+      usernames: this.config.usernames,
+      maxPosts: this.config.maxPosts,
+      hasCredentials: !!(this.credentials?.clientId && this.credentials?.clientSecret),
+    });
+
     const posts: SocialMediaPost[] = [];
     const errors: string[] = [];
 
@@ -38,19 +45,22 @@ export class RedditCrawler extends BaseCrawler {
       // Reddit has a public JSON API that doesn't require authentication for basic access
       const apiPosts = await this.crawlWithApi();
       posts.push(...apiPosts);
+      console.log(`Reddit API crawl completed. Found ${apiPosts.length} posts`);
     } catch (error) {
-      errors.push(
-        `Reddit crawling failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      const errorMsg = `Reddit crawling failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error(errorMsg);
+      errors.push(errorMsg);
 
       // Fall back to web scraping if API fails
       try {
+        console.log('Falling back to Reddit web scraping...');
         const scrapedPosts = await this.crawlWithScraping();
         posts.push(...scrapedPosts);
+        console.log(`Reddit scraping completed. Found ${scrapedPosts.length} posts`);
       } catch (scrapeError) {
-        errors.push(
-          `Reddit scraping failed: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`
-        );
+        const scrapeErrorMsg = `Reddit scraping failed: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`;
+        console.error(scrapeErrorMsg);
+        errors.push(scrapeErrorMsg);
       }
     }
 
@@ -69,17 +79,30 @@ export class RedditCrawler extends BaseCrawler {
   private async crawlWithApi(): Promise<SocialMediaPost[]> {
     const posts: SocialMediaPost[] = [];
 
+    // Get access token for authenticated requests (better rate limits)
+    let accessToken: string | null = null;
+    if (this.credentials?.clientId && this.credentials?.clientSecret) {
+      try {
+        accessToken = await this.getAccessToken();
+      } catch (error) {
+        console.warn(
+          'Failed to get Reddit access token, continuing with unauthenticated requests:',
+          error
+        );
+      }
+    }
+
     // Reddit's JSON API endpoints
     if (this.config.searchTerms?.length) {
       for (const term of this.config.searchTerms) {
-        const searchPosts = await this.searchReddit(term);
+        const searchPosts = await this.searchReddit(term, accessToken);
         posts.push(...searchPosts);
       }
     }
 
     if (this.config.usernames?.length) {
       for (const username of this.config.usernames) {
-        const userPosts = await this.getUserPosts(username);
+        const userPosts = await this.getUserPosts(username, accessToken);
         posts.push(...userPosts);
       }
     }
@@ -87,21 +110,53 @@ export class RedditCrawler extends BaseCrawler {
     return posts;
   }
 
-  private async searchReddit(searchTerm: string): Promise<SocialMediaPost[]> {
+  private async searchReddit(
+    searchTerm: string,
+    accessToken?: string | null
+  ): Promise<SocialMediaPost[]> {
     const posts: SocialMediaPost[] = [];
     const limit = Math.min(this.config.maxPosts || 25, 100);
 
     try {
-      const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(searchTerm)}&limit=${limit}&sort=new`;
-      const data = await this.makeApiRequest<RedditApiResponse>(url, {
-        'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
-      });
+      // Reddit search works better with broader terms, so let's try multiple approaches
+      const searchQueries = [
+        searchTerm, // Original term
+        searchTerm.replace(/['"]/g, ''), // Remove quotes
+        searchTerm.split(' ').join(' OR '), // OR search for multi-word terms
+      ];
 
-      if (data.data?.children) {
-        for (const child of data.data.children) {
-          const post = this.parseRedditPost(child.data);
-          posts.push(post);
+      console.log(`Searching Reddit for: ${searchTerm} (${searchQueries.length} variations)`);
+
+      for (const query of searchQueries) {
+        const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=${limit}&sort=new&type=link,sr`;
+
+        const headers: Record<string, string> = {
+          'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
+        };
+
+        // Add authorization header if we have an access token
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
         }
+
+        console.log(`Making Reddit API request to: ${url}`);
+        const data = await this.makeApiRequest<RedditApiResponse>(url, headers);
+
+        if (data.data?.children) {
+          console.log(`Reddit returned ${data.data.children.length} posts for query: ${query}`);
+          for (const child of data.data.children) {
+            const post = this.parseRedditPost(child.data);
+            // Avoid duplicates
+            if (!posts.find((p) => p.id === post.id)) {
+              posts.push(post);
+            }
+          }
+        } else {
+          console.log(`No data returned for query: ${query}`);
+        }
+
+        // If we found posts, no need to try other variations
+        if (posts.length > 0) break;
       }
     } catch (error) {
       console.error(`Error searching Reddit for "${searchTerm}":`, error);
@@ -111,15 +166,26 @@ export class RedditCrawler extends BaseCrawler {
     return posts;
   }
 
-  private async getUserPosts(username: string): Promise<SocialMediaPost[]> {
+  private async getUserPosts(
+    username: string,
+    accessToken?: string | null
+  ): Promise<SocialMediaPost[]> {
     const posts: SocialMediaPost[] = [];
     const limit = Math.min(this.config.maxPosts || 25, 100);
 
     try {
       const url = `https://www.reddit.com/user/${username}/submitted.json?limit=${limit}&sort=new`;
-      const data = await this.makeApiRequest<RedditApiResponse>(url, {
+
+      const headers: Record<string, string> = {
         'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
-      });
+      };
+
+      // Add authorization header if we have an access token
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      const data = await this.makeApiRequest<RedditApiResponse>(url, headers);
 
       if (data.data?.children) {
         for (const child of data.data.children) {
@@ -133,6 +199,33 @@ export class RedditCrawler extends BaseCrawler {
     }
 
     return posts;
+  }
+
+  private async getAccessToken(): Promise<string> {
+    if (!this.credentials?.clientId || !this.credentials?.clientSecret) {
+      throw new Error('Reddit client ID and secret are required for authentication');
+    }
+
+    const auth = Buffer.from(
+      `${this.credentials.clientId}:${this.credentials.clientSecret}`
+    ).toString('base64');
+
+    const response = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'User-Agent': this.credentials.userAgent || this.options.userAgent!,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get Reddit access token: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { access_token: string };
+    return data.access_token;
   }
 
   private async crawlWithScraping(): Promise<SocialMediaPost[]> {

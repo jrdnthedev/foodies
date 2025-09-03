@@ -95,7 +95,7 @@ export interface ApiCredentials {
   reddit?: {
     clientId?: string;
     clientSecret?: string;
-    userAgent: string;
+    userAgent?: string;
   };
   youtube?: {
     apiKey: string;

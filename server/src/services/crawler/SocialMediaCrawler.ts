@@ -33,6 +33,9 @@ export class SocialMediaCrawler {
   async crawlPlatform(platform: SocialPlatform, config: CrawlerConfig): Promise<CrawlerResult> {
     const crawlerConfig = { ...config, platform };
 
+    // Debug logging to help identify platform issues
+    console.log('🔍 Crawling platform:', platform, 'Type:', typeof platform);
+
     switch (platform) {
       case SocialPlatform.TWITTER:
         // const twitterCrawler = ;

@@ -36,12 +36,34 @@ export abstract class BaseCrawler {
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
+          '--disable-blink-features=AutomationControlled',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
         ],
       });
     }
 
     if (!this.page) {
       this.page = await this.browser.newPage();
+
+      // Make the browser less detectable
+      await this.page.evaluateOnNewDocument(`
+        // Remove webdriver property
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => undefined,
+        });
+        
+        // Mock plugins
+        Object.defineProperty(navigator, 'plugins', {
+          get: () => [1, 2, 3, 4, 5],
+        });
+        
+        // Mock languages
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en'],
+        });
+      `);
+
       await this.page.setUserAgent(this.options.userAgent!);
       await this.page.setViewport(this.options.viewport!);
 
