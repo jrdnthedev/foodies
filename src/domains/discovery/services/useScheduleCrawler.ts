@@ -4,10 +4,10 @@ import type {
   ScheduleCrawlResult,
   ScheduleProcessingRequest,
   ScheduleAnalytics,
-  Schedule,
   HealthCheckResponse,
   ParseTestResponse,
 } from '../../../shared/types/schedule-crawler';
+import type { Schedule } from '../../vendor/entities/schedule';
 
 interface UseScheduleCrawlerReturn {
   // State

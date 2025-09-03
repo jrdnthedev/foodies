@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import useFetchVendors from '../../vendor/services/useFetchVendors';
 import { useScheduleCrawler } from './useScheduleCrawler';
 import type { Vendor } from '../../vendor/entities/vendor';
-import type { ScheduleAnalytics, ActivityLog } from '../../../shared/types/schedule-crawler';
+import type { ScheduleAnalytics } from '../../../shared/types/schedule-crawler';
+import type { ActivityLog } from '../../activity-log/entities/activity-log';
 
 interface UseVendorDiscoveryOptions {
   autoRefresh?: boolean;
