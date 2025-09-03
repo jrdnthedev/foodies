@@ -29,6 +29,7 @@ export const up = async (db: MongoDb): Promise<void> => {
           endTime: '14:00',
           location: 'Downtown Park',
           source: 'Instagram',
+          confidence: 0.85, // High confidence score
         },
       ],
       socialLinks: {
@@ -56,6 +57,7 @@ export const up = async (db: MongoDb): Promise<void> => {
           endTime: '20:00',
           location: 'Harbourfront Market',
           source: 'Twitter',
+          confidence: 0.72, // Medium confidence score
         },
       ],
       socialLinks: {

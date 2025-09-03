@@ -30,6 +30,7 @@ const mockVendors: Vendor[] = [
         endTime: '14:00',
         location: 'Downtown Park',
         source: 'Instagram',
+        confidence: 0.85, // High confidence score
       },
     ],
     socialLinks: {
@@ -55,6 +56,7 @@ const mockVendors: Vendor[] = [
         endTime: '20:00',
         location: 'Harbourfront Market',
         source: 'Twitter',
+        confidence: 0.72, // Medium confidence score
       },
     ],
     socialLinks: {

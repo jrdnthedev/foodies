@@ -1,8 +1,9 @@
 import { lazy, type JSX } from 'react';
 
 const VendorDashboard = lazy(() => import('../domains/vendor/ui/dashboard/dashboard'));
-const VendorProfile = lazy(() => import('../domains/vendor/ui/profile/profile'));
-// const About = lazy(() => import("../pages/About"));
+const VendorProfile = lazy(() => import('../domains/discovery/ui/profile/profile'));
+const DiscoveryDashboard = lazy(() => import('../domains/discovery/ui/dashboard/dashboard'));
+// const DiscoveryPage = lazy(() => import('../domains/discovery/ui/discovery-page/DiscoveryPage'));
 
 export const ProtectedRoutes: ProtectedRoute[] = [
   {
@@ -19,6 +20,11 @@ export const ProtectedRoutes: ProtectedRoute[] = [
     path: '/vendor/:vendorId',
     element: <VendorProfile />,
     label: 'Vendor Profile',
+  },
+  {
+    path: '/discovery',
+    element: <DiscoveryDashboard />,
+    label: 'Discovery',
   },
 ];
 

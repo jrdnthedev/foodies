@@ -34,16 +34,16 @@ app.get('/health', (_req, res) => {
 });
 
 // API info endpoint
-app.get('/api', (_req, res) => {
-  res.json({
-    message: 'Welcome to Foodies API',
-    version: '1.0.0',
-    endpoints: {
-      vendor: '/api/vendor',
-      health: '/health',
-    },
-  });
-});
+// app.get('/api', (_req, res) => {
+//   res.json({
+//     message: 'Welcome to Foodies API',
+//     version: '1.0.0',
+//     endpoints: {
+//       vendor: '/api/vendor',
+//       health: '/health',
+//     },
+//   });
+// });
 
 // Mount API routes
 app.use('/api', apiRoutes);

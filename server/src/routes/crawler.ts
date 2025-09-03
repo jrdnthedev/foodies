@@ -3,6 +3,7 @@ import { TwitterCrawler } from '../services/crawler/TwitterCrawler';
 import { RedditCrawler } from '../services/crawler/RedditCrawler';
 import { InstagramCrawler } from '../services/crawler/InstagramCrawler';
 import { YouTubeCrawler } from '../services/crawler/YouTubeCrawler';
+import { SocialMediaCrawler } from '../services/crawler/SocialMediaCrawler';
 import { SocialPlatform, CrawlerConfig, ScrapingOptions } from '../types/crawler';
 
 const router = express.Router();
@@ -13,6 +14,129 @@ router.get('/platforms', (_req, res) => {
     platforms: Object.values(SocialPlatform),
     message: 'Available social media platforms for crawling',
   });
+});
+
+// Search across all platforms - NEW ENDPOINT
+router.post('/search-all', async (req, res) => {
+  try {
+    const { config, platforms, options, credentials } = req.body;
+
+    if (!config) {
+      return res.status(400).json({
+        error: 'Config is required',
+        example: {
+          config: {
+            searchTerms: ['business name', '"exact business name"'],
+            maxPosts: 20,
+            dateRange: {
+              from: '2024-01-01T00:00:00.000Z',
+              to: '2024-12-31T23:59:59.999Z',
+            },
+          },
+          platforms: ['TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE'],
+          options: {
+            timeout: 30000,
+          },
+        },
+      });
+    }
+
+    const crawlerConfig: CrawlerConfig = {
+      ...config,
+      dateRange: config.dateRange
+        ? {
+            from: new Date(config.dateRange.from),
+            to: new Date(config.dateRange.to),
+          }
+        : undefined,
+    };
+
+    const scrapingOptions: ScrapingOptions = options || {};
+
+    // Normalize platform names to lowercase to match enum values
+    const rawPlatforms = platforms || Object.values(SocialPlatform);
+    const normalizedPlatforms = rawPlatforms.map((platform: string) => platform.toLowerCase());
+
+    // Validate that all platforms are supported
+    const validPlatforms = Object.values(SocialPlatform);
+    const invalidPlatforms = normalizedPlatforms.filter(
+      (platform: string) => !validPlatforms.includes(platform as SocialPlatform)
+    );
+
+    if (invalidPlatforms.length > 0) {
+      return res.status(400).json({
+        error: 'Invalid platforms provided',
+        invalidPlatforms,
+        validPlatforms,
+        hint: 'Platform names should be lowercase: twitter, instagram, reddit, youtube',
+      });
+    }
+
+    const targetPlatforms = normalizedPlatforms as SocialPlatform[];
+
+    // Add environment-based credentials if not provided
+    const defaultCredentials = {
+      reddit: {
+        clientId: process.env.REDDIT_CLIENT_ID,
+        clientSecret: process.env.REDDIT_CLIENT_SECRET,
+        userAgent: process.env.REDDIT_USER_AGENT || 'foodies/1.0',
+      },
+      twitter: {
+        bearerToken: process.env.TWITTER_BEARER_TOKEN,
+      },
+      youtube: {
+        apiKey: process.env.YOUTUBE_API_KEY,
+      },
+      instagram: {
+        // Add Instagram credentials if you have them
+      },
+    };
+
+    // Merge provided credentials with defaults
+    const finalCredentials = {
+      ...defaultCredentials,
+      ...credentials,
+    };
+
+    const socialMediaCrawler = new SocialMediaCrawler(finalCredentials, scrapingOptions);
+    const result = await socialMediaCrawler.crawlMultiplePlatforms(targetPlatforms, crawlerConfig);
+
+    // Transform the result to match the expected format
+    const allPosts = Object.values(result).flatMap((platformResult) => platformResult.posts);
+    const platformCounts = Object.entries(result).reduce(
+      (acc, [platform, platformResult]) => {
+        acc[platform] = platformResult.posts.length;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+
+    const allErrors = Object.values(result).flatMap(
+      (platformResult) => platformResult.errors || []
+    );
+
+    // Sort by timestamp (newest first)
+    allPosts.sort((a, b) => b.metadata.timestamp.getTime() - a.metadata.timestamp.getTime());
+
+    const response = {
+      success: true,
+      allPosts: allPosts.slice(0, crawlerConfig.maxPosts || 100),
+      byPlatform: result,
+      summary: {
+        totalPosts: allPosts.length,
+        platformCounts,
+        errors: allErrors,
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Multi-platform crawler error:', error);
+    res.status(500).json({
+      error: 'Multi-platform crawling failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
 
 // Crawl social media posts
@@ -40,7 +164,10 @@ router.post('/crawl', async (req, res) => {
     const crawlerConfig: CrawlerConfig = config;
     const scrapingOptions: ScrapingOptions = options || {};
 
-    switch (platform.toUpperCase()) {
+    // Normalize platform to lowercase to match enum values
+    const normalizedPlatform = platform.toLowerCase();
+
+    switch (normalizedPlatform) {
       case SocialPlatform.TWITTER:
         crawler = new TwitterCrawler(crawlerConfig, scrapingOptions, credentials?.twitter);
         break;
@@ -57,6 +184,7 @@ router.post('/crawl', async (req, res) => {
         return res.status(400).json({
           error: `Unsupported platform: ${platform}`,
           supportedPlatforms: Object.values(SocialPlatform),
+          hint: 'Platform names should be lowercase: twitter, instagram, reddit, youtube',
         });
     }
 
@@ -64,7 +192,7 @@ router.post('/crawl', async (req, res) => {
 
     res.json({
       success: true,
-      platform,
+      platform: normalizedPlatform,
       result,
     });
   } catch (error) {
