@@ -74,23 +74,54 @@ class SocialMediaSearchService {
       // Prepare search terms based on business name
       const businessNameNormalized = request.businessName.trim();
       const searchTerms = [
-        businessNameNormalized,
-        `"${businessNameNormalized}"`, // Exact match
-        businessNameNormalized.replace(/\s+/g, ''), // No spaces version
-        // Add common variations
-        businessNameNormalized.toLowerCase(),
-        // Split into individual words for broader matching
-        ...businessNameNormalized.split(/\s+/).filter((word) => word.length > 2),
+        businessNameNormalized, // Original: "Pizza Nova"
+        `"${businessNameNormalized}"`, // Exact match: "Pizza Nova"
+        businessNameNormalized.replace(/\s+/g, ''), // No spaces version: "PizzaNova"
+        businessNameNormalized.toLowerCase(), // Lowercase: "pizza nova"
       ];
 
       // Add hashtag versions if requested
       if (request.includeHashtags) {
         const hashtagVersion = businessNameNormalized.replace(/\s+/g, '').toLowerCase();
-        searchTerms.push(`#${hashtagVersion}`);
-        // Also add hashtag with business name words
-        businessNameNormalized.split(/\s+/).forEach((word) => {
+        searchTerms.push(`#${hashtagVersion}`); // #pizzanova
+
+        // Also add hashtag with original casing
+        const hashtagOriginal = businessNameNormalized.replace(/\s+/g, '');
+        if (hashtagOriginal !== hashtagVersion) {
+          searchTerms.push(`#${hashtagOriginal}`); // #PizzaNova
+        }
+      }
+
+      // Only split into individual words in very specific cases to avoid noise
+      const words = businessNameNormalized.split(/\s+/);
+      const businessSuffixes = [
+        'restaurant',
+        'cafe',
+        'bar',
+        'grill',
+        'kitchen',
+        'bistro',
+        'diner',
+        'pizza',
+        'burger',
+      ];
+
+      // Only add individual words if:
+      // 1. Business name contains common food/restaurant suffixes, OR
+      // 2. It's a single word (no splitting needed), OR
+      // 3. One of the words is very generic and commonly used alone
+      const hasBusinessSuffix = words.some((word) => businessSuffixes.includes(word.toLowerCase()));
+      const hasGenericWord = words.some((word) =>
+        ['pizza', 'burger', 'coffee', 'taco', 'sushi'].includes(word.toLowerCase())
+      );
+
+      if (hasBusinessSuffix || hasGenericWord) {
+        words.forEach((word) => {
           if (word.length > 2) {
-            searchTerms.push(`#${word.toLowerCase()}`);
+            searchTerms.push(word);
+            if (request.includeHashtags) {
+              searchTerms.push(`#${word.toLowerCase()}`);
+            }
           }
         });
       }

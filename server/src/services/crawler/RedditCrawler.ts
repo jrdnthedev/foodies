@@ -128,7 +128,7 @@ export class RedditCrawler extends BaseCrawler {
       console.log(`Searching Reddit for: ${searchTerm} (${searchQueries.length} variations)`);
 
       for (const query of searchQueries) {
-        const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=${limit}&sort=new&type=link,sr`;
+        const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=${limit}&sort=new&type=all`;
 
         const headers: Record<string, string> = {
           'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
