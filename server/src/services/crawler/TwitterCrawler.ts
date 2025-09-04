@@ -142,6 +142,43 @@ export class TwitterCrawler extends BaseCrawler {
       }
     } catch (error) {
       console.error('❌ Twitter API request failed:', error);
+
+      // Enhanced error handling for common issues
+      if (error instanceof Error && 'response' in error) {
+        const axiosError = error as {
+          response?: {
+            status: number;
+            data?: { errors?: Array<{ title: string; detail: string }> };
+            headers?: Record<string, string>;
+          };
+        };
+        const status = axiosError.response?.status;
+        const errorData = axiosError.response?.data;
+
+        if (status === 400) {
+          console.error('🚫 Bad Request (400) - Possible issues:');
+          if (errorData?.errors) {
+            errorData.errors.forEach((err: { title: string; detail: string }) => {
+              console.error(`   - ${err.title}: ${err.detail}`);
+            });
+          }
+          console.error('   - Your Bearer Token might be invalid or expired');
+          console.error('   - Check your Twitter Developer Portal for valid credentials');
+          console.error('   - Ensure your app has the correct permissions');
+        } else if (status === 401) {
+          console.error('🚫 Unauthorized (401) - Invalid or expired Bearer Token');
+        } else if (status === 403) {
+          console.error('🚫 Forbidden (403) - Account suspended or insufficient permissions');
+        } else if (status === 429) {
+          console.error('🚫 Rate Limited (429) - Too many requests, wait before retrying');
+          const resetTime = axiosError.response?.headers?.['x-rate-limit-reset'];
+          if (resetTime) {
+            const resetDate = new Date(parseInt(resetTime) * 1000);
+            console.error(`   - Rate limit resets at: ${resetDate.toLocaleString()}`);
+          }
+        }
+      }
+
       throw error;
     }
 
@@ -149,7 +186,8 @@ export class TwitterCrawler extends BaseCrawler {
   }
 
   private async crawlWithScraping(): Promise<SocialMediaPost[]> {
-    console.log('⚠️ Warning: Twitter web scraping is very limited due to anti-bot measures');
+    console.log('⚠️ Warning: Twitter web scraping requires authentication and may violate ToS');
+    console.log('🔧 Consider using Twitter API v2 with Bearer Token for reliable access');
 
     await this.initBrowser();
     const posts: SocialMediaPost[] = [];
@@ -160,26 +198,29 @@ export class TwitterCrawler extends BaseCrawler {
         throw new Error('Search query cannot be empty');
       }
 
-      // Note: Twitter/X has strong anti-scraping measures
+      // Try alternative approaches before direct scraping
+      const alternativeResults = await this.tryAlternativeApproaches(searchQuery);
+      if (alternativeResults.length > 0) {
+        return alternativeResults;
+      }
+
+      // Note: Twitter/X has strong anti-scraping measures and requires login
       const searchUrl = `https://x.com/search?q=${encodeURIComponent(searchQuery)}&src=typed_query&f=live`;
 
-      console.log('🌐 Navigating to Twitter search:', searchUrl);
+      console.log('🌐 Attempting Twitter search (likely to fail without auth):', searchUrl);
 
-      // Add more stealth-like behavior
+      // Enhanced stealth measures
       if (this.page) {
-        // Disable images and CSS to speed up loading and reduce detection
-        await this.page.setRequestInterception(true);
-        this.page.on('request', (req) => {
-          const resourceType = req.resourceType();
-          if (
-            resourceType === 'stylesheet' ||
-            resourceType === 'image' ||
-            resourceType === 'font'
-          ) {
-            req.abort();
-          } else {
-            req.continue();
-          }
+        // More aggressive stealth
+        await this.setupStealthMode();
+
+        // Set additional headers
+        await this.page.setExtraHTTPHeaders({
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Upgrade-Insecure-Requests': '1',
         });
       }
 
@@ -444,5 +485,162 @@ export class TwitterCrawler extends BaseCrawler {
     console.log('🔍 Built search query:', query);
 
     return query;
+  }
+
+  /**
+   * Try alternative approaches before falling back to direct scraping
+   */
+  private async tryAlternativeApproaches(searchQuery: string): Promise<SocialMediaPost[]> {
+    console.log('🔍 Trying alternative approaches for Twitter content...');
+
+    // Approach 1: Try Nitter instances (privacy-focused Twitter frontend)
+    try {
+      const nitterResults = await this.tryNitterScraping(searchQuery);
+      if (nitterResults.length > 0) {
+        console.log(`✅ Found ${nitterResults.length} posts via Nitter`);
+        return nitterResults;
+      }
+    } catch (error) {
+      console.log(
+        '❌ Nitter approach failed:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+
+    // Approach 2: Try guest access patterns
+    try {
+      const guestResults = await this.tryGuestAccess();
+      if (guestResults.length > 0) {
+        console.log(`✅ Found ${guestResults.length} posts via guest access`);
+        return guestResults;
+      }
+    } catch (error) {
+      console.log(
+        '❌ Guest access failed:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+
+    return [];
+  }
+
+  /**
+   * Enhanced stealth mode setup
+   */
+  private async setupStealthMode(): Promise<void> {
+    if (!this.page) return;
+
+    // Simple request interception to block unnecessary resources
+    await this.page.setRequestInterception(true);
+    this.page.on('request', (req) => {
+      const resourceType = req.resourceType();
+      if (['stylesheet', 'image', 'font', 'media'].includes(resourceType)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    // Add random delays to appear more human-like
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
+  }
+
+  /**
+   * Try scraping via Nitter instances
+   */
+  private async tryNitterScraping(searchQuery: string): Promise<SocialMediaPost[]> {
+    const nitterInstances = [
+      'https://nitter.net',
+      'https://nitter.it',
+      'https://nitter.snopyta.org',
+      'https://nitter.nixnet.services',
+    ];
+
+    for (const instance of nitterInstances) {
+      try {
+        console.log(`🦅 Trying Nitter instance: ${instance}`);
+        const searchUrl = `${instance}/search?f=tweets&q=${encodeURIComponent(searchQuery)}`;
+
+        await this.navigateToUrl(searchUrl);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        const html = await this.getPageContent();
+        const $ = this.parseWithCheerio(html);
+
+        const posts: SocialMediaPost[] = [];
+
+        // Nitter uses different selectors than Twitter
+        $('.timeline-item').each((_, element) => {
+          const $element = $(element);
+          const text = $element.find('.tweet-content').text().trim();
+          const username = $element.find('.username').text().trim().replace('@', '');
+          const displayName = $element.find('.fullname').text().trim();
+
+          if (text && username) {
+            posts.push({
+              id: this.generatePostId(SocialPlatform.TWITTER),
+              platform: SocialPlatform.TWITTER,
+              author: {
+                username,
+                displayName,
+                profileUrl: `https://x.com/${username}`,
+              },
+              content: {
+                text: this.cleanText(text),
+                hashtags: this.extractHashtags(text),
+                mentions: this.extractMentions(text),
+                links: this.extractUrls(text),
+              },
+              engagement: {
+                likes: 0,
+                shares: 0,
+                comments: 0,
+              },
+              metadata: {
+                postUrl: `https://x.com/${username}/status/unknown`,
+                timestamp: new Date(),
+                hashtags: this.extractHashtags(text),
+                mentions: this.extractMentions(text),
+              },
+            });
+          }
+        });
+
+        if (posts.length > 0) {
+          return posts;
+        }
+      } catch (error) {
+        console.log(
+          `❌ Nitter instance ${instance} failed:`,
+          error instanceof Error ? error.message : 'Unknown error'
+        );
+        continue;
+      }
+    }
+
+    return [];
+  }
+
+  /**
+   * Try guest access patterns
+   */
+  private async tryGuestAccess(): Promise<SocialMediaPost[]> {
+    try {
+      // Some Twitter endpoints might still work with guest tokens
+      console.log('🎭 Attempting guest access patterns...');
+
+      // This is a placeholder for guest access implementation
+      // Guest access requires reverse-engineering Twitter's guest token system
+      // which is complex and may violate ToS
+
+      console.log('⚠️ Guest access not fully implemented - requires Twitter guest token system');
+      return [];
+    } catch (error) {
+      console.log(
+        '❌ Guest access failed:',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+      return [];
+    }
   }
 }

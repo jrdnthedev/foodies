@@ -40,7 +40,7 @@ export const exampleConfigs = {
 // Environment variables needed for API access
 export const requiredEnvVars = {
   twitter: [
-    'TWITTER_BEARER_TOKEN', // For Twitter API v2
+    'TWITTER_BEARER_TOKEN', // For Twitter API v2 - REQUIRED for avoiding login issues
     'TWITTER_API_KEY', // Optional: for v1.1 API
     'TWITTER_API_SECRET',
     'TWITTER_ACCESS_TOKEN',
