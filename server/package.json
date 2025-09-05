@@ -10,8 +10,6 @@
     "build": "tsc",
     "clean": "rimraf dist",
     "migrate": "npx tsx src/migrations/migrate.ts",
-    "migrate:rollback": "npx tsx src/migrations/migrate.ts rollback",
-    "test:twitter-auth": "npx tsx --env-file=.env src/examples/twitter-auth-demo.ts",
-    "validate:twitter-token": "npx tsx --env-file=.env src/examples/validate-twitter-token.ts"
+    "migrate:rollback": "npx tsx src/migrations/migrate.ts rollback"
   }
 }
