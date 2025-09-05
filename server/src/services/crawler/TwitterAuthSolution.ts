@@ -247,7 +247,6 @@ export class TwitterTestHelper {
       status.setup.forEach((step) => console.log(step));
     }
 
-    console.log('\n📚 For complete setup guide, see:');
-    console.log('server/src/config/twitter-auth-setup.md');
+    console.log('\n📚 For complete setup guide, check the project documentation.');
   }
 }
