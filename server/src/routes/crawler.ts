@@ -4,7 +4,28 @@ import { RedditCrawler } from '../services/crawler/RedditCrawler';
 import { InstagramCrawler } from '../services/crawler/InstagramCrawler';
 import { YouTubeCrawler } from '../services/crawler/YouTubeCrawler';
 import { SocialMediaCrawler } from '../services/crawler/SocialMediaCrawler';
-import { SocialPlatform, CrawlerConfig, ScrapingOptions } from '../types/crawler';
+import {
+  SocialPlatform,
+  CrawlerConfig,
+  ScrapingOptions,
+  SocialMediaPost,
+  UserProfile,
+  CrawlerResult,
+} from '../types/crawler';
+
+interface MultiPlatformSearchResponse {
+  success: boolean;
+  searchType: 'posts' | 'profiles';
+  byPlatform: Record<string, CrawlerResult>;
+  summary: {
+    platformCounts: Record<string, number>;
+    errors: string[];
+    totalPosts?: number;
+    totalProfiles?: number;
+  };
+  allPosts?: SocialMediaPost[];
+  allProfiles?: UserProfile[];
+}
 
 const router = express.Router();
 
@@ -26,8 +47,10 @@ router.post('/search-all', async (req, res) => {
         error: 'Config is required',
         example: {
           config: {
+            searchType: 'posts', // or 'profiles' for user search
             searchTerms: ['business name', '"exact business name"'],
-            maxPosts: 20,
+            maxPosts: 20, // for post search
+            maxProfiles: 10, // for profile search
             dateRange: {
               from: '2024-01-01T00:00:00.000Z',
               to: '2024-12-31T23:59:59.999Z',
@@ -101,11 +124,39 @@ router.post('/search-all', async (req, res) => {
     const socialMediaCrawler = new SocialMediaCrawler(finalCredentials, scrapingOptions);
     const result = await socialMediaCrawler.crawlMultiplePlatforms(targetPlatforms, crawlerConfig);
 
+    console.log('Raw crawler result structure:', Object.keys(result));
+    Object.entries(result).forEach(([platform, platformResult]) => {
+      console.log(`${platform} result:`, {
+        hasPosts: !!platformResult?.posts,
+        hasProfiles: !!platformResult?.profiles,
+        postsLength: platformResult?.posts?.length || 0,
+        profilesLength: platformResult?.profiles?.length || 0,
+        metadata: platformResult?.metadata || null,
+      });
+    });
+
     // Transform the result to match the expected format
-    const allPosts = Object.values(result).flatMap((platformResult) => platformResult.posts);
+    const isProfileSearch = crawlerConfig.searchType === 'profiles';
+
+    const allPosts = isProfileSearch
+      ? []
+      : Object.values(result).flatMap((platformResult) => {
+          return platformResult?.posts || [];
+        });
+
+    const allProfiles = isProfileSearch
+      ? Object.values(result).flatMap((platformResult) => {
+          return platformResult?.profiles || [];
+        })
+      : [];
+
     const platformCounts = Object.entries(result).reduce(
       (acc, [platform, platformResult]) => {
-        acc[platform] = platformResult.posts.length;
+        if (isProfileSearch) {
+          acc[platform] = platformResult?.profiles?.length || 0;
+        } else {
+          acc[platform] = platformResult?.posts?.length || 0;
+        }
         return acc;
       },
       {} as Record<string, number>
@@ -115,19 +166,34 @@ router.post('/search-all', async (req, res) => {
       (platformResult) => platformResult.errors || []
     );
 
-    // Sort by timestamp (newest first)
-    allPosts.sort((a, b) => b.metadata.timestamp.getTime() - a.metadata.timestamp.getTime());
+    // Sort by timestamp (newest first) - handle both posts and profiles
+    if (isProfileSearch) {
+      // Profiles don't always have timestamps, so sort by platform then id
+      allProfiles.sort((a, b) => {
+        const platformCompare = a.platform.localeCompare(b.platform);
+        return platformCompare !== 0 ? platformCompare : a.id.localeCompare(b.id);
+      });
+    } else {
+      allPosts.sort((a, b) => b.metadata.timestamp.getTime() - a.metadata.timestamp.getTime());
+    }
 
-    const response = {
+    const response: MultiPlatformSearchResponse = {
       success: true,
-      allPosts: allPosts.slice(0, crawlerConfig.maxPosts || 100),
+      searchType: isProfileSearch ? 'profiles' : 'posts',
       byPlatform: result,
       summary: {
-        totalPosts: allPosts.length,
         platformCounts,
         errors: allErrors,
       },
     };
+
+    if (isProfileSearch) {
+      response.allProfiles = allProfiles.slice(0, crawlerConfig.maxProfiles || 50);
+      response.summary.totalProfiles = allProfiles.length;
+    } else {
+      response.allPosts = allPosts.slice(0, crawlerConfig.maxPosts || 100);
+      response.summary.totalPosts = allPosts.length;
+    }
 
     res.json(response);
   } catch (error) {
