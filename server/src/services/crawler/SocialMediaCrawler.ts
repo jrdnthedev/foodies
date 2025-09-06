@@ -4,6 +4,7 @@ import { RedditCrawler } from './RedditCrawler';
 import { YouTubeCrawler } from './YouTubeCrawler';
 import {
   SocialMediaPost,
+  UserProfile,
   CrawlerConfig,
   CrawlerResult,
   SocialPlatform,
@@ -89,13 +90,15 @@ export class SocialMediaCrawler {
       } catch (error) {
         errors.push(`${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         // Create empty result for failed platform
+        const isProfileSearch = config.searchType === 'profiles';
         results[platform] = {
-          posts: [],
+          ...(isProfileSearch ? { profiles: [] } : { posts: [] }),
           metadata: {
             totalFound: 0,
             crawledAt: new Date(),
             searchQuery: this.buildSearchQuery(config),
             platform,
+            searchType: isProfileSearch ? 'profiles' : 'posts',
           },
           errors: [error instanceof Error ? error.message : 'Unknown error'],
         };
@@ -108,10 +111,12 @@ export class SocialMediaCrawler {
   }
 
   async searchAcrossAllPlatforms(config: CrawlerConfig): Promise<{
-    allPosts: SocialMediaPost[];
+    allPosts?: SocialMediaPost[];
+    allProfiles?: UserProfile[];
     byPlatform: Record<SocialPlatform, CrawlerResult>;
     summary: {
       totalPosts: number;
+      totalProfiles?: number;
       platformCounts: Record<SocialPlatform, number>;
       errors: string[];
     };
@@ -125,27 +130,46 @@ export class SocialMediaCrawler {
 
     const byPlatform = await this.crawlMultiplePlatforms(supportedPlatforms, config);
 
-    // Combine all posts
+    // Combine all results
     const allPosts: SocialMediaPost[] = [];
+    const allProfiles: UserProfile[] = [];
     const platformCounts: Record<string, number> = {};
     const allErrors: string[] = [];
 
     for (const [platform, result] of Object.entries(byPlatform)) {
-      allPosts.push(...result.posts);
-      platformCounts[platform] = result.posts.length;
+      if (result.posts) {
+        allPosts.push(...result.posts);
+        platformCounts[platform] = result.posts.length;
+      } else if (result.profiles) {
+        allProfiles.push(...result.profiles);
+        platformCounts[platform] = result.profiles.length;
+      } else {
+        platformCounts[platform] = 0;
+      }
+
       if (result.errors) {
         allErrors.push(...result.errors.map((err) => `${platform}: ${err}`));
       }
     }
 
     // Sort by timestamp (newest first)
-    allPosts.sort((a, b) => b.metadata.timestamp.getTime() - a.metadata.timestamp.getTime());
+    const sortedPosts = allPosts.sort(
+      (a, b) => b.metadata.timestamp.getTime() - a.metadata.timestamp.getTime()
+    );
+    const sortedProfiles = allProfiles.sort(
+      (a, b) => (b.metrics?.followers || 0) - (a.metrics?.followers || 0)
+    );
+
+    const isProfileSearch = config.searchType === 'profiles';
 
     return {
-      allPosts: allPosts.slice(0, config.maxPosts || 100),
+      ...(isProfileSearch
+        ? { allProfiles: sortedProfiles.slice(0, config.maxProfiles || 50) }
+        : { allPosts: sortedPosts.slice(0, config.maxPosts || 100) }),
       byPlatform,
       summary: {
-        totalPosts: allPosts.length,
+        totalPosts: isProfileSearch ? 0 : allPosts.length,
+        totalProfiles: isProfileSearch ? allProfiles.length : 0,
         platformCounts: platformCounts as Record<SocialPlatform, number>,
         errors: allErrors,
       },

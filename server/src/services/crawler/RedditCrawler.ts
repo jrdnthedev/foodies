@@ -8,6 +8,8 @@ import {
   ScrapingOptions,
   RedditApiResponse,
   RedditPost,
+  RedditUser,
+  UserProfile,
 } from '../../types/crawler';
 
 export class RedditCrawler extends BaseCrawler {
@@ -31,49 +33,73 @@ export class RedditCrawler extends BaseCrawler {
       throw new Error('Invalid configuration: At least one search term or username is required');
     }
 
-    console.log('Reddit crawler starting with config:', {
-      searchTerms: this.config.searchTerms,
-      usernames: this.config.usernames,
-      maxPosts: this.config.maxPosts,
-      hasCredentials: !!(this.credentials?.clientId && this.credentials?.clientSecret),
-    });
+    const isProfileSearch = this.config.searchType === 'profiles';
+
+    console.log(
+      `Reddit crawler starting with config (${isProfileSearch ? 'profile' : 'post'} search):`,
+      {
+        searchType: this.config.searchType || 'posts',
+        searchTerms: this.config.searchTerms,
+        usernames: this.config.usernames,
+        maxResults: isProfileSearch ? this.config.maxProfiles : this.config.maxPosts,
+        hasCredentials: !!(this.credentials?.clientId && this.credentials?.clientSecret),
+      }
+    );
 
     const posts: SocialMediaPost[] = [];
+    const profiles: UserProfile[] = [];
     const errors: string[] = [];
 
     try {
-      // Reddit has a public JSON API that doesn't require authentication for basic access
-      const apiPosts = await this.crawlWithApi();
-      posts.push(...apiPosts);
-      console.log(`Reddit API crawl completed. Found ${apiPosts.length} posts`);
+      if (isProfileSearch) {
+        // Search for user profiles
+        const apiProfiles = await this.crawlProfilesWithApi();
+        profiles.push(...apiProfiles);
+        console.log(`Reddit profile crawl completed. Found ${apiProfiles.length} profiles`);
+      } else {
+        // Reddit has a public JSON API that doesn't require authentication for basic access
+        const apiPosts = await this.crawlWithApi();
+        posts.push(...apiPosts);
+        console.log(`Reddit API crawl completed. Found ${apiPosts.length} posts`);
+      }
     } catch (error) {
       const errorMsg = `Reddit crawling failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       console.error(errorMsg);
       errors.push(errorMsg);
 
-      // Fall back to web scraping if API fails
-      try {
-        console.log('Falling back to Reddit web scraping...');
-        const scrapedPosts = await this.crawlWithScraping();
-        posts.push(...scrapedPosts);
-        console.log(`Reddit scraping completed. Found ${scrapedPosts.length} posts`);
-      } catch (scrapeError) {
-        const scrapeErrorMsg = `Reddit scraping failed: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`;
-        console.error(scrapeErrorMsg);
-        errors.push(scrapeErrorMsg);
+      if (!isProfileSearch) {
+        // Fall back to web scraping if API fails for post search
+        try {
+          console.log('Falling back to Reddit web scraping...');
+          const scrapedPosts = await this.crawlWithScraping();
+          posts.push(...scrapedPosts);
+          console.log(`Reddit scraping completed. Found ${scrapedPosts.length} posts`);
+        } catch (scrapeError) {
+          const scrapeErrorMsg = `Reddit scraping failed: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`;
+          console.error(scrapeErrorMsg);
+          errors.push(scrapeErrorMsg);
+        }
       }
     }
 
-    return {
-      posts: posts.slice(0, this.config.maxPosts || 50),
+    const result: CrawlerResult = {
       metadata: {
-        totalFound: posts.length,
+        totalFound: isProfileSearch ? profiles.length : posts.length,
         crawledAt: new Date(),
         searchQuery: this.buildSearchQuery(),
         platform: SocialPlatform.REDDIT,
+        searchType: isProfileSearch ? 'profiles' : 'posts',
       },
       errors: errors.length > 0 ? errors : undefined,
     };
+
+    if (isProfileSearch) {
+      result.profiles = profiles.slice(0, this.config.maxProfiles || 50);
+    } else {
+      result.posts = posts.slice(0, this.config.maxPosts || 50);
+    }
+
+    return result;
   }
 
   private async crawlWithApi(): Promise<SocialMediaPost[]> {
@@ -357,5 +383,179 @@ export class RedditCrawler extends BaseCrawler {
     }
 
     return parts.join(' OR ');
+  }
+
+  private async crawlProfilesWithApi(): Promise<UserProfile[]> {
+    const profiles: UserProfile[] = [];
+
+    if (!this.config.searchTerms?.length) {
+      throw new Error('Search terms are required for profile search');
+    }
+
+    // Get access token for authenticated requests (better rate limits)
+    let accessToken: string | null = null;
+    if (this.credentials?.clientId && this.credentials?.clientSecret) {
+      try {
+        accessToken = await this.getAccessToken();
+      } catch (error) {
+        console.warn(
+          'Failed to get Reddit access token, continuing with unauthenticated requests:',
+          error
+        );
+      }
+    }
+
+    for (const searchTerm of this.config.searchTerms) {
+      try {
+        console.log(`🔍 Searching Reddit for users matching: ${searchTerm}`);
+
+        // Method 1: Direct username lookup if it looks like a username
+        if (this.isValidRedditUsername(searchTerm)) {
+          const userProfile = await this.getUserProfile(searchTerm, accessToken);
+          if (userProfile) {
+            profiles.push(userProfile);
+            console.log(`✅ Found user profile: u/${searchTerm}`);
+            continue;
+          }
+        }
+
+        // Method 2: Search for users via subreddit searches and extract active users
+        // Reddit doesn't have a direct user search API, so we need to be creative
+        const searchUsers = await this.searchUsersIndirectly(searchTerm, accessToken);
+        profiles.push(...searchUsers);
+
+        if (profiles.length >= (this.config.maxProfiles || 10)) {
+          break; // Stop if we have enough profiles
+        }
+      } catch (error) {
+        console.error(`❌ Profile search failed for "${searchTerm}":`, error);
+        continue;
+      }
+    }
+
+    return profiles;
+  }
+
+  private async getUserProfile(
+    username: string,
+    accessToken?: string | null
+  ): Promise<UserProfile | null> {
+    try {
+      const url = `https://www.reddit.com/user/${username}/about.json`;
+
+      const headers: Record<string, string> = {
+        'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
+      };
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      const data = await this.makeApiRequest<{ data?: RedditUser }>(url, headers);
+
+      if (data.data) {
+        const user = data.data;
+        return {
+          id: this.generatePostId(SocialPlatform.REDDIT, user.id),
+          platform: SocialPlatform.REDDIT,
+          username: user.name,
+          displayName: user.name,
+          description: user.subreddit?.public_description,
+          profileUrl: `https://www.reddit.com/user/${user.name}`,
+          avatarUrl: user.icon_img,
+          verified: user.verified || false,
+          metrics: {
+            posts: user.link_karma, // Approximate using karma
+            followers: user.subreddit?.subscribers,
+          },
+          metadata: {
+            createdAt: new Date(user.created_utc * 1000),
+          },
+          matchReason: `Exact username match for "${username}"`,
+          rawData: user,
+        };
+      }
+    } catch (error) {
+      console.log(`❌ Failed to get profile for user: ${username}`, error);
+    }
+
+    return null;
+  }
+
+  private async searchUsersIndirectly(
+    searchTerm: string,
+    accessToken?: string | null
+  ): Promise<UserProfile[]> {
+    const profiles: UserProfile[] = [];
+    const maxResults = Math.min(this.config.maxProfiles || 10, 25);
+
+    try {
+      // Search for posts and extract unique authors whose usernames match the search term
+      const searchUrl = `https://www.reddit.com/search.json?q=${encodeURIComponent(searchTerm)}&limit=${maxResults}&sort=hot&type=all`;
+
+      const headers: Record<string, string> = {
+        'User-Agent': this.credentials?.userAgent || this.options.userAgent!,
+      };
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      const data = await this.makeApiRequest<RedditApiResponse>(searchUrl, headers);
+
+      if (data.data?.children) {
+        const uniqueAuthors = new Set<string>();
+
+        for (const child of data.data.children) {
+          const post = child.data;
+          const author = post.author;
+
+          // Check if the author's username contains the search term
+          if (
+            author &&
+            author !== '[deleted]' &&
+            author.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !uniqueAuthors.has(author)
+          ) {
+            uniqueAuthors.add(author);
+
+            // Try to get full profile info for this user
+            const userProfile = await this.getUserProfile(author, accessToken);
+            if (userProfile) {
+              profiles.push({
+                ...userProfile,
+                matchReason: `Username "${author}" contains search term "${searchTerm}"`,
+              });
+            } else {
+              // Create basic profile if full profile fetch fails
+              profiles.push({
+                id: this.generatePostId(SocialPlatform.REDDIT, author),
+                platform: SocialPlatform.REDDIT,
+                username: author,
+                displayName: author,
+                profileUrl: `https://www.reddit.com/user/${author}`,
+                matchReason: `Username "${author}" contains search term "${searchTerm}"`,
+                metadata: {},
+              });
+            }
+
+            if (profiles.length >= maxResults) {
+              break;
+            }
+          }
+        }
+
+        console.log(`📊 Found ${profiles.length} user profiles matching "${searchTerm}"`);
+      }
+    } catch (error) {
+      console.error(`❌ Indirect user search failed for "${searchTerm}":`, error);
+    }
+
+    return profiles;
+  }
+
+  private isValidRedditUsername(str: string): boolean {
+    // Reddit usernames are 3-20 characters, alphanumeric plus underscore and hyphen
+    return /^[a-zA-Z0-9_-]{3,20}$/.test(str);
   }
 }

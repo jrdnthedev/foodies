@@ -4,7 +4,35 @@ export interface SocialMediaSearchRequest {
   businessName: string;
   platforms?: string[];
   maxPosts?: number;
+  maxProfiles?: number; // New field
   includeHashtags?: boolean;
+  searchType?: 'posts' | 'profiles'; // New field - defaults to 'posts' for backward compatibility
+}
+
+export interface SocialMediaProfile {
+  id: string;
+  platform: string;
+  username: string;
+  displayName?: string;
+  description?: string;
+  profileUrl: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  verified?: boolean;
+  metrics?: {
+    followers?: number;
+    following?: number;
+    posts?: number;
+    likes?: number;
+  };
+  metadata?: {
+    createdAt?: Date;
+    location?: string;
+    website?: string;
+    isPrivate?: boolean;
+    isBusinessAccount?: boolean;
+  };
+  matchReason?: string;
 }
 
 export interface SocialMediaPost {
@@ -34,21 +62,26 @@ export interface SocialMediaPost {
 
 export interface SocialMediaSearchResult {
   businessName: string;
-  allPosts: SocialMediaPost[];
+  searchType: 'posts' | 'profiles';
+  allPosts?: SocialMediaPost[]; // Make optional for profile searches
+  allProfiles?: SocialMediaProfile[]; // New field for profiles
   byPlatform: Record<
     string,
     {
-      posts: SocialMediaPost[];
+      posts?: SocialMediaPost[];
+      profiles?: SocialMediaProfile[];
       metadata: {
         totalFound: number;
         crawledAt: Date;
         searchQuery: string;
         platform: string;
+        searchType: 'posts' | 'profiles';
       };
     }
   >;
   summary: {
-    totalPosts: number;
+    totalPosts?: number; // Make optional
+    totalProfiles?: number; // New field
     platformCounts: Record<string, number>;
     errors: string[];
   };
@@ -127,8 +160,10 @@ class SocialMediaSearchService {
       }
 
       const crawlerConfig = {
+        searchType: request.searchType || 'posts', // Default to posts for backward compatibility
         searchTerms,
         maxPosts: request.maxPosts || 20,
+        maxProfiles: request.maxProfiles || 10,
         dateRange: {
           from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // Last 90 days (increased from 30)
           to: new Date(),
@@ -138,6 +173,7 @@ class SocialMediaSearchService {
       // Use the crawler's search across all platforms endpoint
       console.log('Search request:', {
         businessName: request.businessName,
+        searchType: request.searchType || 'posts',
         searchTerms,
         platforms: request.platforms,
         config: crawlerConfig,
@@ -161,8 +197,12 @@ class SocialMediaSearchService {
       }
 
       const result = await response.json();
+      const isProfileSearch = request.searchType === 'profiles';
+
       console.log('Search result:', {
+        searchType: isProfileSearch ? 'profiles' : 'posts',
         totalPosts: result.summary?.totalPosts || 0,
+        totalProfiles: result.summary?.totalProfiles || 0,
         platformCounts: result.summary?.platformCounts || {},
         errors: result.summary?.errors || [],
       });
@@ -171,6 +211,7 @@ class SocialMediaSearchService {
         success: true,
         data: {
           businessName: request.businessName,
+          searchType: isProfileSearch ? 'profiles' : 'posts',
           ...result,
         },
       };

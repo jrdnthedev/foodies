@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
-import useFetchVendors from '../../../vendor/services/useFetchVendors';
+import useFetchVendors from '../../services/useFetchVendors';
 import { useEffect, useState } from 'react';
-import type { Vendor } from '../../../vendor/entities/vendor';
+import type { Vendor } from '../../entities/vendor';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import Link from '../../../../shared/components/link/link';
-import ButtonContainer from '../../../vendor/ui/button-container/button-container';
-import { useScheduleCrawler } from '../../services/useScheduleCrawler';
-import { ScheduleCard } from '../schedule-card/schedule-card';
+import ButtonContainer from '../button-container/button-container';
+import { useScheduleCrawler } from '../../../discovery/services/useScheduleCrawler';
+import { ScheduleCard } from '../../../discovery/ui/schedule-card/schedule-card';
 import Card from '../../../../shared/components/card/card';
 
 export default function Profile() {
@@ -15,7 +15,7 @@ export default function Profile() {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const previousPagePath = '/discovery';
+  const previousPagePath = '/vendor-dashboard';
   const { schedules, loadAnalytics } = useScheduleCrawler();
 
   useEffect(() => {

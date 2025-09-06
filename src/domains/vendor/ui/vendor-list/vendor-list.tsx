@@ -1,8 +1,8 @@
 import Card from '../../../../shared/components/card/card';
 import Link from '../../../../shared/components/link/link';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
-import type { Vendor } from '../../../vendor/entities/vendor';
-import useFetchVendors from '../../../vendor/services/useFetchVendors';
+import type { Vendor } from '../../entities/vendor';
+import useFetchVendors from '../../services/useFetchVendors';
 
 export default function VendorList() {
   const { vendors, loading, error, pagination, refetch } = useFetchVendors({

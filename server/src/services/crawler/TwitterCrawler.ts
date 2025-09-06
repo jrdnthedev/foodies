@@ -9,6 +9,7 @@ import {
   TwitterApiResponse,
   TwitterTweet,
   TwitterUser,
+  UserProfile,
 } from '../../types/crawler';
 
 export class TwitterCrawler extends BaseCrawler {
@@ -38,30 +39,48 @@ export class TwitterCrawler extends BaseCrawler {
       );
     }
 
-    console.log('🐦 Starting Twitter crawl with config:', {
+    const isProfileSearch = this.config.searchType === 'profiles';
+
+    console.log(`🐦 Starting Twitter ${isProfileSearch ? 'profile' : 'post'} crawl with config:`, {
+      searchType: this.config.searchType || 'posts',
       searchTerms: this.config.searchTerms,
       hashtags: this.config.hashtags,
       usernames: this.config.usernames,
-      maxPosts: this.config.maxPosts,
+      maxResults: isProfileSearch ? this.config.maxProfiles : this.config.maxPosts,
       hasApiCredentials: !!this.credentials?.bearerToken,
     });
 
     const posts: SocialMediaPost[] = [];
+    const profiles: UserProfile[] = [];
     const errors: string[] = [];
 
     try {
-      // Try API first if credentials are available
-      if (this.credentials?.bearerToken) {
-        console.log('🔑 Using Twitter API with bearer token');
-        const apiPosts = await this.crawlWithApi();
-        posts.push(...apiPosts);
-        console.log(`✅ Twitter API returned ${apiPosts.length} posts`);
+      if (isProfileSearch) {
+        // Search for user profiles
+        if (this.credentials?.bearerToken) {
+          console.log('🔑 Using Twitter API for profile search');
+          const apiProfiles = await this.crawlProfilesWithApi();
+          profiles.push(...apiProfiles);
+          console.log(`✅ Twitter API returned ${apiProfiles.length} profiles`);
+        } else {
+          console.log('🕷️ Falling back to web scraping for profiles (no API credentials)');
+          const scrapedProfiles = await this.crawlProfilesWithScraping();
+          profiles.push(...scrapedProfiles);
+          console.log(`✅ Twitter scraping returned ${scrapedProfiles.length} profiles`);
+        }
       } else {
-        console.log('🕷️ Falling back to web scraping (no API credentials)');
-        // Fall back to web scraping
-        const scrapedPosts = await this.crawlWithScraping();
-        posts.push(...scrapedPosts);
-        console.log(`✅ Twitter scraping returned ${scrapedPosts.length} posts`);
+        // Original post search functionality
+        if (this.credentials?.bearerToken) {
+          console.log('🔑 Using Twitter API with bearer token');
+          const apiPosts = await this.crawlWithApi();
+          posts.push(...apiPosts);
+          console.log(`✅ Twitter API returned ${apiPosts.length} posts`);
+        } else {
+          console.log('🕷️ Falling back to web scraping (no API credentials)');
+          const scrapedPosts = await this.crawlWithScraping();
+          posts.push(...scrapedPosts);
+          console.log(`✅ Twitter scraping returned ${scrapedPosts.length} posts`);
+        }
       }
     } catch (error) {
       const errorMessage = `Twitter crawling failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -69,19 +88,25 @@ export class TwitterCrawler extends BaseCrawler {
       errors.push(errorMessage);
     }
 
-    const result = {
-      posts: posts.slice(0, this.config.maxPosts || 50),
+    const result: CrawlerResult = {
       metadata: {
-        totalFound: posts.length,
+        totalFound: isProfileSearch ? profiles.length : posts.length,
         crawledAt: new Date(),
         searchQuery: this.buildSearchQuery(),
         platform: SocialPlatform.TWITTER,
+        searchType: isProfileSearch ? 'profiles' : 'posts',
       },
       errors: errors.length > 0 ? errors : undefined,
     };
 
-    console.log('🎯 Twitter crawl complete:', {
-      postsFound: result.posts.length,
+    if (isProfileSearch) {
+      result.profiles = profiles.slice(0, this.config.maxProfiles || 50);
+    } else {
+      result.posts = posts.slice(0, this.config.maxPosts || 50);
+    }
+
+    console.log(`🎯 Twitter ${isProfileSearch ? 'profile' : 'post'} crawl complete:`, {
+      resultsFound: isProfileSearch ? result.profiles?.length : result.posts?.length,
       totalFound: result.metadata.totalFound,
       hasErrors: !!result.errors?.length,
     });
@@ -373,6 +398,346 @@ export class TwitterCrawler extends BaseCrawler {
     }
 
     return posts;
+  }
+
+  private async crawlProfilesWithApi(): Promise<UserProfile[]> {
+    if (!this.credentials?.bearerToken) {
+      throw new Error('Twitter API credentials not provided');
+    }
+
+    const profiles: UserProfile[] = [];
+
+    if (!this.config.searchTerms?.length) {
+      throw new Error('Search terms are required for profile search');
+    }
+
+    // Twitter API v2 users search endpoint
+    const maxResults = Math.min(this.config.maxProfiles || 10, 100);
+
+    for (const searchTerm of this.config.searchTerms) {
+      try {
+        // Try searching by display name using Twitter's user search endpoint
+        const searchUrl = `https://api.x.com/2/users/search`;
+        const params = new URLSearchParams({
+          q: searchTerm,
+          max_results: maxResults.toString(),
+          'user.fields':
+            'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type',
+        });
+
+        const fullUrl = `${searchUrl}?${params.toString()}`;
+
+        console.log('🐦 Making Twitter User Search API request:', fullUrl);
+
+        try {
+          const data = await this.makeApiRequest<{
+            data?: TwitterUser[];
+            meta?: { result_count?: number; next_token?: string };
+          }>(fullUrl, {
+            Authorization: `Bearer ${this.credentials.bearerToken}`,
+          });
+
+          if (data.data && data.data.length > 0) {
+            console.log(`📊 Twitter User API response: ${data.data.length} users found`);
+
+            for (const user of data.data) {
+              const profile = this.parseApiUserProfile(user, searchTerm);
+              profiles.push(profile);
+            }
+          } else {
+            console.log(`⚠️ No users found for search term: ${searchTerm}`);
+          }
+        } catch (apiError) {
+          console.log(`❌ User search API failed for "${searchTerm}", trying username lookup...`);
+
+          // Fallback: try direct username lookup if the search term could be a username
+          if (this.isValidUsername(searchTerm)) {
+            try {
+              const userUrl = `https://api.x.com/2/users/by/username/${searchTerm}`;
+              const userParams = new URLSearchParams({
+                'user.fields':
+                  'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type',
+              });
+
+              const userData = await this.makeApiRequest<{ data?: TwitterUser }>(
+                `${userUrl}?${userParams.toString()}`,
+                { Authorization: `Bearer ${this.credentials.bearerToken}` }
+              );
+
+              if (userData.data) {
+                const profile = this.parseApiUserProfile(userData.data, searchTerm);
+                profiles.push(profile);
+                console.log(`✅ Found user by username: ${searchTerm}`);
+              }
+            } catch {
+              console.log(`❌ Username lookup failed for: ${searchTerm}`);
+              throw apiError; // Re-throw original error
+            }
+          } else {
+            throw apiError;
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Profile search failed for "${searchTerm}":`, error);
+        continue; // Continue with next search term
+      }
+    }
+
+    return profiles;
+  }
+
+  private async crawlProfilesWithScraping(): Promise<UserProfile[]> {
+    console.log('⚠️ Warning: Twitter profile scraping requires authentication and may violate ToS');
+    console.log('🔧 Consider using Twitter API v2 with Bearer Token for reliable access');
+
+    await this.initBrowser();
+    const profiles: UserProfile[] = [];
+
+    try {
+      if (!this.config.searchTerms?.length) {
+        throw new Error('Search terms are required for profile search');
+      }
+
+      for (const searchTerm of this.config.searchTerms) {
+        try {
+          console.log(`🔍 Searching for profiles matching: ${searchTerm}`);
+
+          // Try different approaches for profile search
+          await this.searchProfilesByScraping(searchTerm, profiles);
+
+          if (profiles.length >= (this.config.maxProfiles || 10)) {
+            break; // Stop if we have enough profiles
+          }
+        } catch (error) {
+          console.error(`❌ Profile scraping failed for "${searchTerm}":`, error);
+          continue;
+        }
+      }
+    } finally {
+      await this.closeBrowser();
+    }
+
+    return profiles;
+  }
+
+  private async searchProfilesByScraping(
+    searchTerm: string,
+    profiles: UserProfile[]
+  ): Promise<void> {
+    // Method 1: Try direct username access if it looks like a username
+    if (this.isValidUsername(searchTerm)) {
+      try {
+        const profileUrl = `https://x.com/${searchTerm}`;
+        console.log(`📍 Checking direct profile URL: ${profileUrl}`);
+
+        await this.navigateToUrl(profileUrl);
+        const currentUrl = await this.page!.url();
+
+        if (!currentUrl.includes('login') && !currentUrl.includes('suspended')) {
+          const profile = await this.scrapeProfileFromPage(searchTerm, searchTerm);
+          if (profile) {
+            profiles.push(profile);
+            console.log(`✅ Found profile for username: ${searchTerm}`);
+            return;
+          }
+        }
+      } catch {
+        console.log(`❌ Direct profile access failed for: ${searchTerm}`);
+      }
+    }
+
+    // Method 2: Try Twitter search for people
+    try {
+      const searchUrl = `https://x.com/search?q=${encodeURIComponent(searchTerm)}&src=typed_query&f=user`;
+      console.log(`🌐 Trying Twitter people search: ${searchUrl}`);
+
+      await this.navigateToUrl(searchUrl);
+
+      // Check if we're blocked or redirected
+      const currentUrl = await this.page!.url();
+      if (currentUrl.includes('login') || currentUrl.includes('i/flow')) {
+        console.log('🚫 X/Twitter requires authentication for people search');
+        throw new Error('Authentication required');
+      }
+
+      // Wait for results to load
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await this.scrollToLoadContent();
+
+      const html = await this.getPageContent();
+      const $ = this.parseWithCheerio(html);
+
+      // Try to find user profile elements in search results
+      const profileElements = $(
+        '[data-testid="UserCell"], [data-testid="user-cell"], [data-testid="User-Names"]'
+      );
+
+      console.log(`📊 Found ${profileElements.length} potential profile elements`);
+
+      profileElements.each((index, element) => {
+        if (profiles.length >= (this.config.maxProfiles || 10)) return false; // Stop processing
+
+        try {
+          const $element = $(element);
+          const username = this.extractUsernameFromElement($element);
+          const displayName = this.extractDisplayNameFromElement($element);
+
+          if (username && this.profileMatchesSearch(username, displayName, searchTerm)) {
+            const profile: UserProfile = {
+              id: this.generatePostId(SocialPlatform.TWITTER, username),
+              platform: SocialPlatform.TWITTER,
+              username: username,
+              displayName: displayName,
+              profileUrl: `https://x.com/${username}`,
+              avatarUrl: this.extractAvatarFromElement($element),
+              verified: this.extractVerificationFromElement($element),
+              matchReason: `Username or display name contains "${searchTerm}"`,
+              metadata: {
+                isPrivate: false,
+              },
+            };
+
+            profiles.push(profile);
+            console.log(`✅ Found matching profile: @${username} (${displayName})`);
+          }
+        } catch (error) {
+          console.error(`Error parsing profile element ${index}:`, error);
+        }
+      });
+    } catch (error) {
+      console.log(`❌ People search failed for: ${searchTerm}`, error);
+    }
+  }
+
+  private async scrapeProfileFromPage(
+    username: string,
+    searchTerm: string
+  ): Promise<UserProfile | null> {
+    try {
+      const html = await this.getPageContent();
+      const $ = this.parseWithCheerio(html);
+
+      // Try to extract profile information from the page
+      const displayName = $('[data-testid="UserName"] span').first().text() || username;
+      const description = $('[data-testid="UserDescription"]').text().trim();
+      const avatar = $('[data-testid="UserAvatar"] img').attr('src');
+      const isVerified = $('[data-testid="UserName"] svg[aria-label*="Verified"]').length > 0;
+
+      // Extract metrics if available
+      const followersText = $('[href$="/followers"] span').last().text();
+      const followingText = $('[href$="/following"] span').last().text();
+
+      const followers = this.parseNumber(followersText);
+      const following = this.parseNumber(followingText);
+
+      return {
+        id: this.generatePostId(SocialPlatform.TWITTER, username),
+        platform: SocialPlatform.TWITTER,
+        username: username,
+        displayName: displayName,
+        description: description || undefined,
+        profileUrl: `https://x.com/${username}`,
+        avatarUrl: avatar,
+        verified: isVerified,
+        metrics: {
+          followers: followers > 0 ? followers : undefined,
+          following: following > 0 ? following : undefined,
+        },
+        matchReason: `Profile found for search term "${searchTerm}"`,
+        metadata: {
+          isPrivate: html.includes('protected') || html.includes('private'),
+        },
+      };
+    } catch (error) {
+      console.error('Error scraping profile page:', error);
+      return null;
+    }
+  }
+
+  private parseApiUserProfile(user: TwitterUser, searchTerm: string): UserProfile {
+    return {
+      id: this.generatePostId(SocialPlatform.TWITTER, user.id),
+      platform: SocialPlatform.TWITTER,
+      username: user.username,
+      displayName: user.name,
+      description: user.description,
+      profileUrl: `https://x.com/${user.username}`,
+      avatarUrl: user.profile_image_url,
+      verified: user.verified || false,
+      metrics: {
+        followers: user.public_metrics?.followers_count,
+        following: user.public_metrics?.following_count,
+        posts: user.public_metrics?.tweet_count,
+      },
+      metadata: {
+        createdAt: user.created_at ? new Date(user.created_at) : undefined,
+        location: user.location,
+        website: user.url,
+      },
+      matchReason: `Profile matches search term "${searchTerm}"`,
+      rawData: user,
+    };
+  }
+
+  private isValidUsername(str: string): boolean {
+    // Twitter usernames are 1-15 characters, alphanumeric plus underscore
+    return /^[a-zA-Z0-9_]{1,15}$/.test(str);
+  }
+
+  private profileMatchesSearch(
+    username: string,
+    displayName: string | undefined,
+    searchTerm: string
+  ): boolean {
+    const term = searchTerm.toLowerCase();
+    const usernameMatch = username.toLowerCase().includes(term);
+    const displayNameMatch = displayName?.toLowerCase().includes(term);
+
+    return usernameMatch || !!displayNameMatch;
+  }
+
+  private extractUsernameFromElement($element: cheerio.Cheerio): string | null {
+    // Try various selectors for username
+    const selectors = [
+      'a[href^="/"]',
+      '[data-testid="User-Names"] a',
+      '.username',
+      '[data-testid="UserName"] a',
+    ];
+
+    for (const selector of selectors) {
+      const href = $element.find(selector).attr('href');
+      if (href && href.startsWith('/') && href.length > 1) {
+        return href.substring(1).split('/')[0]; // Remove leading slash and get username
+      }
+    }
+
+    return null;
+  }
+
+  private extractDisplayNameFromElement($element: cheerio.Cheerio): string | undefined {
+    const selectors = [
+      '[data-testid="User-Names"] span',
+      '.display-name',
+      '[data-testid="UserName"] span',
+    ];
+
+    for (const selector of selectors) {
+      const name = $element.find(selector).first().text().trim();
+      if (name && !name.startsWith('@')) {
+        return name;
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractAvatarFromElement($element: cheerio.Cheerio): string | undefined {
+    return $element.find('img[src*="profile_images"]').attr('src');
+  }
+
+  private extractVerificationFromElement($element: cheerio.Cheerio): boolean {
+    return $element.find('svg[aria-label*="Verified"]').length > 0;
   }
 
   private parseApiTweet(tweet: TwitterTweet, author?: TwitterUser): SocialMediaPost {
