@@ -19,7 +19,9 @@ export function SocialMediaSearch({
     'REDDIT',
     'YOUTUBE',
   ]);
+  const [searchType, setSearchType] = useState<'posts' | 'profiles'>('posts');
   const [maxPosts, setMaxPosts] = useState(20);
+  const [maxProfiles, setMaxProfiles] = useState(10);
   const [includeHashtags, setIncludeHashtags] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -37,8 +39,10 @@ export function SocialMediaSearch({
     onSearch({
       businessName: businessName.trim(),
       platforms: selectedPlatforms,
-      maxPosts,
-      includeHashtags,
+      searchType,
+      maxPosts: searchType === 'posts' ? maxPosts : undefined,
+      maxProfiles: searchType === 'profiles' ? maxProfiles : undefined,
+      includeHashtags: searchType === 'posts' ? includeHashtags : false, // Only relevant for post searches
     });
   };
 
@@ -65,6 +69,60 @@ export function SocialMediaSearch({
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSearching}
           />
+        </div>
+
+        {/* Search Type Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            What are you looking for?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
+                searchType === 'posts'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <input
+                type="radio"
+                name="searchType"
+                value="posts"
+                checked={searchType === 'posts'}
+                onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
+                className="sr-only"
+                disabled={isSearching}
+              />
+              <div className="flex-1">
+                <div className="font-medium text-sm">📝 Posts & Content</div>
+                <div className="text-xs text-gray-600 mt-1">
+                  Find recent posts mentioning the business
+                </div>
+              </div>
+            </label>
+
+            <label
+              className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
+                searchType === 'profiles'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <input
+                type="radio"
+                name="searchType"
+                value="profiles"
+                checked={searchType === 'profiles'}
+                onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
+                className="sr-only"
+                disabled={isSearching}
+              />
+              <div className="flex-1">
+                <div className="font-medium text-sm">👥 User Profiles</div>
+                <div className="text-xs text-gray-600 mt-1">Find accounts with matching names</div>
+              </div>
+            </label>
+          </div>
         </div>
 
         {/* Platform Selection */}
@@ -109,34 +167,64 @@ export function SocialMediaSearch({
         {/* Advanced Options */}
         {showAdvanced && (
           <div className="space-y-3 p-3 bg-gray-50 rounded border">
-            <div>
-              <label htmlFor="max-posts" className="block text-sm font-medium text-gray-700 mb-1">
-                Maximum Posts per Platform
-              </label>
-              <select
-                id="max-posts"
-                value={maxPosts}
-                onChange={(e) => setMaxPosts(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSearching}
-              >
-                <option value={10}>10 posts</option>
-                <option value={20}>20 posts</option>
-                <option value={50}>50 posts</option>
-                <option value={100}>100 posts</option>
-              </select>
-            </div>
+            {searchType === 'posts' ? (
+              <>
+                <div>
+                  <label
+                    htmlFor="max-posts"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Maximum Posts per Platform
+                  </label>
+                  <select
+                    id="max-posts"
+                    value={maxPosts}
+                    onChange={(e) => setMaxPosts(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isSearching}
+                  >
+                    <option value={10}>10 posts</option>
+                    <option value={20}>20 posts</option>
+                    <option value={50}>50 posts</option>
+                    <option value={100}>100 posts</option>
+                  </select>
+                </div>
 
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={includeHashtags}
-                onChange={(e) => setIncludeHashtags(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                disabled={isSearching}
-              />
-              <span className="text-sm text-gray-700">Include hashtag variations in search</span>
-            </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={includeHashtags}
+                    onChange={(e) => setIncludeHashtags(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled={isSearching}
+                  />
+                  <span className="text-sm text-gray-700">
+                    Include hashtag variations in search
+                  </span>
+                </label>
+              </>
+            ) : (
+              <div>
+                <label
+                  htmlFor="max-profiles"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Maximum Profiles per Platform
+                </label>
+                <select
+                  id="max-profiles"
+                  value={maxProfiles}
+                  onChange={(e) => setMaxProfiles(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSearching}
+                >
+                  <option value={5}>5 profiles</option>
+                  <option value={10}>10 profiles</option>
+                  <option value={20}>20 profiles</option>
+                  <option value={50}>50 profiles</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
@@ -171,7 +259,7 @@ export function SocialMediaSearch({
               Searching...
             </span>
           ) : (
-            'Search Social Media'
+            `Search for ${searchType === 'profiles' ? 'Profiles' : 'Posts'}`
           )}
         </button>
       </form>

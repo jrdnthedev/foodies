@@ -1,5 +1,6 @@
 import type { SocialMediaSearchResult } from '../../services/social-media-search.service';
 import { SocialMediaPostCard } from '../social-media-post-card/social-media-post-card';
+import { SocialMediaProfileCard } from '../social-media-profile-card/social-media-profile-card';
 
 interface SocialMediaSearchResultsProps {
   result: SocialMediaSearchResult;
@@ -7,7 +8,12 @@ interface SocialMediaSearchResultsProps {
 }
 
 export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchResultsProps) {
-  const { businessName, allPosts, byPlatform, summary } = result;
+  const { businessName, searchType, allPosts, allProfiles, byPlatform, summary } = result;
+  const isProfileSearch = searchType === 'profiles';
+
+  const totalResults = isProfileSearch ? summary.totalProfiles || 0 : summary.totalPosts || 0;
+
+  const resultItems = isProfileSearch ? allProfiles : allPosts;
 
   return (
     <div className="bg-white border rounded-lg shadow-sm">
@@ -16,11 +22,11 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Social Media Results for "{businessName}"
+              {isProfileSearch ? 'Profile' : 'Social Media'} Results for "{businessName}"
             </h3>
             <p className="text-sm text-gray-600">
-              Found {summary.totalPosts} posts across {Object.keys(summary.platformCounts).length}{' '}
-              platforms
+              Found {totalResults} {isProfileSearch ? 'profiles' : 'posts'} across{' '}
+              {Object.keys(summary.platformCounts).length} platforms
             </p>
           </div>
           <button
@@ -42,7 +48,7 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
               key={platform}
               className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
             >
-              {platform}: {count} posts
+              {platform}: {count} {isProfileSearch ? 'profiles' : 'posts'}
             </span>
           ))}
         </div>
@@ -60,27 +66,43 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
         </div>
       )}
 
-      {/* Posts */}
+      {/* Results */}
       <div className="p-4">
-        {allPosts.length > 0 ? (
+        {resultItems && resultItems.length > 0 ? (
           <>
             <h4 className="text-sm font-medium text-gray-700 mb-4">
-              Recent Posts ({allPosts.length}):
+              {isProfileSearch ? 'Matching Profiles' : 'Recent Posts'} ({resultItems.length}):
             </h4>
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {allPosts.slice(0, 10).map((post) => (
-                <SocialMediaPostCard key={`${post.platform}-${post.id}`} post={post} />
-              ))}
-              {allPosts.length > 10 && (
+              {resultItems.slice(0, 10).map((item) => {
+                if (isProfileSearch && allProfiles) {
+                  const profile = item as (typeof allProfiles)[0];
+                  return (
+                    <SocialMediaProfileCard
+                      key={`${profile.platform}-${profile.id}`}
+                      profile={profile}
+                    />
+                  );
+                } else if (!isProfileSearch && allPosts) {
+                  const post = item as (typeof allPosts)[0];
+                  return <SocialMediaPostCard key={`${post.platform}-${post.id}`} post={post} />;
+                }
+                return null;
+              })}
+              {resultItems.length > 10 && (
                 <div className="text-center py-4">
-                  <p className="text-sm text-gray-500">Showing 10 of {allPosts.length} posts</p>
+                  <p className="text-sm text-gray-500">
+                    Showing 10 of {resultItems.length} {isProfileSearch ? 'profiles' : 'posts'}
+                  </p>
                 </div>
               )}
             </div>
           </>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500">No posts found for this business.</p>
+            <p className="text-gray-500">
+              No {isProfileSearch ? 'profiles' : 'posts'} found for this business.
+            </p>
             <p className="text-sm text-gray-400 mt-1">
               Try adjusting your search terms or checking different platforms.
             </p>
@@ -96,16 +118,23 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
               Platform Details
             </summary>
             <div className="mt-3 space-y-3">
-              {Object.entries(byPlatform).map(([platform, data]) => (
-                <div key={platform} className="border rounded p-3 bg-gray-50">
-                  <h5 className="font-medium text-sm capitalize">{platform}</h5>
-                  <p className="text-xs text-gray-600">
-                    {data.posts.length} posts found • Crawled at{' '}
-                    {new Date(data.metadata.crawledAt).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Query: {data.metadata.searchQuery}</p>
-                </div>
-              ))}
+              {Object.entries(byPlatform).map(([platform, data]) => {
+                const itemCount = isProfileSearch
+                  ? data.profiles?.length || 0
+                  : data.posts?.length || 0;
+
+                return (
+                  <div key={platform} className="border rounded p-3 bg-gray-50">
+                    <h5 className="font-medium text-sm capitalize">{platform}</h5>
+                    <p className="text-xs text-gray-600">
+                      {itemCount} {isProfileSearch ? 'profiles' : 'posts'} found • Crawled at{' '}
+                      {new Date(data.metadata.crawledAt).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Query: {data.metadata.searchQuery}</p>
+                    <p className="text-xs text-gray-500">Search Type: {data.metadata.searchType}</p>
+                  </div>
+                );
+              })}
             </div>
           </details>
         </div>

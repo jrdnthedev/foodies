@@ -37,7 +37,7 @@ export function useSocialMediaSearch(): UseSocialMediaSearchReturn {
         // Log the successful search
         await socialMediaSearchService.logSearch({
           searchTerm: request.businessName,
-          resultsCount: result.data.summary.totalPosts,
+          resultsCount: result.data.summary.totalPosts || result.data.summary.totalProfiles || 0,
           platforms: request.platforms || ['TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE'],
           success: true,
         });
