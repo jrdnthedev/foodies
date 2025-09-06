@@ -1,3 +1,4 @@
+import Card from '../../../../shared/components/card/card';
 import type { SocialMediaProfile } from '../../services/social-media-search.service';
 
 interface SocialMediaProfileCardProps {
@@ -43,37 +44,35 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
   };
 
   return (
-    <div className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start space-x-3">
+    <Card>
+      <div className="flex flex-col gap-2">
         {/* Avatar */}
-        <div className="flex-shrink-0">
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={profile.displayName || profile.username}
-              className="w-12 h-12 rounded-full object-cover"
-              onError={(e) => {
-                // Fallback to platform icon if avatar fails to load
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          ) : null}
-          <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg ${getPlatformColor(
-              profile.platform
-            )} ${profile.avatarUrl ? 'hidden' : ''}`}
-          >
-            {getPlatformIcon(profile.platform)}
+        <div className="grid grid-cols-[3rem_auto_4rem] justify-stretch gap-2">
+          <div className="flex-shrink-0">
+            {profile.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt={profile.displayName || profile.username}
+                className="w-12 h-12 rounded-full object-cover"
+                onError={(e) => {
+                  // Fallback to platform icon if avatar fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg ${getPlatformColor(
+                profile.platform
+              )} ${profile.avatarUrl ? 'hidden' : ''}`}
+            >
+              {getPlatformIcon(profile.platform)}
+            </div>
           </div>
-        </div>
-
-        {/* Profile Content */}
-        <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 min-w-0">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
               <h3 className="text-sm font-medium text-gray-900 truncate">
                 {profile.displayName || profile.username}
               </h3>
@@ -92,23 +91,25 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
                 </svg>
               )}
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-lg">{getPlatformIcon(profile.platform)}</span>
-              <span className="text-xs text-gray-500 capitalize">{profile.platform}</span>
-            </div>
+            {/* Username */}
+            <p className="text-sm text-gray-600">@{profile.username}</p>
           </div>
+          <div className="flex items-center gap-1">
+            <span className="text-lg">{getPlatformIcon(profile.platform)}</span>
+            <span className="text-xs text-gray-500 capitalize">{profile.platform}</span>
+          </div>
+        </div>
 
-          {/* Username */}
-          <p className="text-sm text-gray-600 mt-1">@{profile.username}</p>
-
+        {/* Profile Content */}
+        <div className="flex flex-col gap-2">
           {/* Description */}
           {profile.description && (
-            <p className="text-sm text-gray-700 mt-2 line-clamp-2">{profile.description}</p>
+            <p className="text-sm text-gray-700 line-clamp-2">{profile.description}</p>
           )}
 
           {/* Metrics */}
           {profile.metrics && (
-            <div className="flex items-center space-x-4 mt-3 text-xs text-gray-500">
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
               {profile.metrics.followers !== undefined && (
                 <div className="flex items-center space-x-1">
                   <span>👥</span>
@@ -132,7 +133,7 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
 
           {/* Match Reason */}
           {profile.matchReason && (
-            <div className="mt-3 px-2 py-1 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+            <div className="px-2 py-1 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
               <span className="font-medium">Match:</span> {profile.matchReason}
             </div>
           )}
@@ -164,6 +165,6 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

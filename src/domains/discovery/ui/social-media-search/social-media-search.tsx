@@ -20,9 +20,9 @@ export function SocialMediaSearch({
     'YOUTUBE',
   ]);
   const [searchType, setSearchType] = useState<'posts' | 'profiles'>('posts');
-  const [maxPosts, setMaxPosts] = useState(20);
-  const [maxProfiles, setMaxProfiles] = useState(10);
-  const [includeHashtags, setIncludeHashtags] = useState(true);
+  // const [maxPosts, setMaxPosts] = useState(20);
+  // const [maxProfiles, setMaxProfiles] = useState(10);
+  // const [includeHashtags, setIncludeHashtags] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const platforms = [
@@ -40,9 +40,9 @@ export function SocialMediaSearch({
       businessName: businessName.trim(),
       platforms: selectedPlatforms,
       searchType,
-      maxPosts: searchType === 'posts' ? maxPosts : undefined,
-      maxProfiles: searchType === 'profiles' ? maxProfiles : undefined,
-      includeHashtags: searchType === 'posts' ? includeHashtags : false, // Only relevant for post searches
+      // maxPosts: searchType === 'posts' ? maxPosts : undefined,
+      // maxProfiles: searchType === 'profiles' ? maxProfiles : undefined,
+      // includeHashtags: searchType === 'posts' ? includeHashtags : false,
     });
   };
 
@@ -53,11 +53,11 @@ export function SocialMediaSearch({
   };
 
   return (
-    <div className="bg-white border rounded-lg p-4 shadow-sm">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Business Name Input */}
-        <div>
-          <label htmlFor="business-name" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="business-name" className="block text-sm font-medium text-gray-700">
             Business Name
           </label>
           <input
@@ -72,11 +72,11 @@ export function SocialMediaSearch({
         </div>
 
         {/* Search Type Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="flex flex-col gap-2">
+          <label className="block text-sm font-medium text-gray-700">
             What are you looking for?
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex gap-2">
             <label
               className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
                 searchType === 'posts'
@@ -126,10 +126,8 @@ export function SocialMediaSearch({
         </div>
 
         {/* Platform Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Platforms to Search
-          </label>
+        <div className="flex flex-col gap-2">
+          <label className="block text-sm font-medium text-gray-700">Platforms to Search</label>
           <div className="grid grid-cols-2 gap-2">
             {platforms.map((platform) => (
               <label
@@ -165,7 +163,7 @@ export function SocialMediaSearch({
         </button>
 
         {/* Advanced Options */}
-        {showAdvanced && (
+        {/* {showAdvanced && (
           <div className="space-y-3 p-3 bg-gray-50 rounded border">
             {searchType === 'posts' ? (
               <>
@@ -226,7 +224,7 @@ export function SocialMediaSearch({
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Search Button */}
         <button
@@ -267,6 +265,6 @@ export function SocialMediaSearch({
       {selectedPlatforms.length === 0 && (
         <p className="text-sm text-red-600 mt-2">Please select at least one platform to search.</p>
       )}
-    </div>
+    </>
   );
 }
