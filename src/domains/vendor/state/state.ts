@@ -13,7 +13,7 @@ interface VendorState {
     total: number;
     totalPages: number;
   } | null;
-
+  followedVendors: Vendor[];
   // Loading states
   isLoading: boolean;
   isCreating: boolean;
@@ -36,6 +36,8 @@ interface VendorActions {
   addVendor: (vendor: Vendor) => void;
   updateVendor: (id: string, updates: Partial<Vendor>) => void;
   removeVendor: (id: string) => void;
+
+  removeFollowedVendor: (id: string) => void;
   selectVendor: (vendor: Vendor | null) => void;
   getVendorById: (id: string) => Vendor | null;
   selectVendorById: (id: string) => void;
@@ -60,6 +62,7 @@ interface VendorActions {
 const initialState: VendorState = {
   vendors: [],
   selectedVendor: null,
+  followedVendors: [],
   pagination: null,
   isLoading: false,
   isCreating: false,
@@ -79,7 +82,7 @@ export const useVendorStore = create<VendorState & VendorActions>()(
 
       addVendor: (vendor: Vendor) =>
         set((state: VendorState & VendorActions) => ({
-          vendors: [...state.vendors, vendor],
+          followedVendors: [...state.followedVendors, vendor],
         })),
 
       updateVendor: (id: string, updates: Partial<Vendor>) =>
@@ -93,6 +96,12 @@ export const useVendorStore = create<VendorState & VendorActions>()(
         set((state: VendorState & VendorActions) => ({
           vendors: state.vendors.filter((vendor: Vendor) => vendor.id !== id),
           selectedVendor: state.selectedVendor?.id === id ? null : state.selectedVendor,
+          followedVendors: state.followedVendors.filter((vendor: Vendor) => vendor.id !== id),
+        })),
+
+      removeFollowedVendor: (id: string) =>
+        set((state: VendorState & VendorActions) => ({
+          followedVendors: state.followedVendors.filter((vendor: Vendor) => vendor.id !== id),
         })),
 
       selectVendor: (vendor: Vendor) => set({ selectedVendor: vendor }),
