@@ -1,45 +1,46 @@
+import { useCallback } from 'react';
 import Card from '../../../../shared/components/card/card';
-import Link from '../../../../shared/components/link/link';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import type { Vendor } from '../../entities/vendor';
-import useFetchVendors from '../../services/useFetchVendors';
+import { useVendorStore } from '../../state/state';
+import { useNavigate } from 'react-router-dom';
 
 export default function VendorList() {
-  const { vendors, loading, error, pagination, refetch } = useFetchVendors({
-    page: 1,
-    limit: 10,
-  });
+  const { followedVendors, isLoading, error, selectVendor } = useVendorStore();
+  const navigate = useNavigate();
 
-  if (loading) {
+  const handleVendorClick = useCallback(
+    (vendor: Vendor) => {
+      selectVendor(vendor);
+      navigate(`/vendor/${vendor.id}`);
+    },
+    [selectVendor]
+  );
+
+  if (isLoading) {
     return <LoadingStencil />;
   }
 
-  if (error) {
-    return (
-      <div>
-        <p>Error: {error}</p>
-        <button onClick={refetch}>Retry</button>
-      </div>
-    );
-  }
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>
-      {vendors.length === 0 ? (
+      {followedVendors.length === 0 ? (
         <Card>
           <p>No vendors found.</p>
         </Card>
       ) : (
         <ul className="flex flex-col gap-4">
-          {vendors.map((vendor: Vendor) => {
+          {followedVendors.map((vendor: Vendor) => {
             const scheduleCount = vendor.schedule?.length || 0;
             const hasSchedules = scheduleCount > 0;
+            console.log(vendor);
             return (
               <li key={vendor.id}>
                 <Card>
-                  <Link
-                    path={`/vendor/${vendor.id}`}
-                    styles="block hover:bg-gray-50 transition-colors duration-200"
+                  <button
+                    onClick={() => handleVendorClick(vendor)}
+                    className="block hover:bg-gray-50 transition-colors duration-200"
                   >
                     <div className="rounded-lg">
                       <img src="/salad.jpg" alt="Banner" />
@@ -68,19 +69,11 @@ export default function VendorList() {
                         <span className="text-green-600 font-medium">Active</span>
                       </div>
                     )}
-                  </Link>
+                  </button>
                 </Card>
               </li>
             );
           })}
-
-          {pagination && (
-            <div>
-              <p className="text-xs text-gray-500 italic">
-                Page {pagination.page} of {pagination.totalPages}({pagination.total} total vendors)
-              </p>
-            </div>
-          )}
         </ul>
       )}
     </>

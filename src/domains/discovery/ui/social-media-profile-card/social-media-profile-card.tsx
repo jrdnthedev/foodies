@@ -1,6 +1,7 @@
 import Card from '../../../../shared/components/card/card';
 import type { SocialMediaProfile } from '../../services/social-media-search.service';
 import FollowContainer from '../../../../shared/components/follow-container/follow-container';
+import type { Vendor } from '../../../vendor/entities/vendor';
 
 interface SocialMediaProfileCardProps {
   profile: SocialMediaProfile;
@@ -42,6 +43,30 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
       default:
         return 'bg-gray-500';
     }
+  };
+
+  const convertToVendor = (profile: SocialMediaProfile): Vendor => {
+    return {
+      id: profile.id || `${profile.platform}-${profile.username}`,
+      name: profile.displayName || profile.username,
+      type: 'social-media', // or determine based on profile content
+      location: {
+        // You'll need to provide default values or extract from profile.metadata?.location
+        address: profile.metadata?.location || '',
+        lat: 0,
+        lng: 0,
+      },
+      schedule: [], // Empty array as social media profiles don't have schedules
+      socialLinks: {
+        instagram: profile.platform === 'instagram' ? profile.profileUrl : undefined,
+        twitter: profile.platform === 'twitter' ? profile.profileUrl : null,
+        facebook: profile.platform === 'facebook' ? profile.profileUrl : null,
+        website: profile.platform === 'website' ? profile.profileUrl : null,
+      },
+      claimedBy: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   };
   console.log(profile);
   return (
@@ -99,7 +124,7 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
             <span className="text-lg">{getPlatformIcon(profile.platform)}</span>
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 capitalize">{profile.platform}</span>
-              <FollowContainer vendorId={profile.id} />
+              <FollowContainer vendor={convertToVendor(profile)} />
             </div>
           </div>
         </div>
