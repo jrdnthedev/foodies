@@ -1,4 +1,8 @@
-import type { SocialMediaSearchResult } from '../../services/social-media-search.service';
+import type {
+  SocialMediaPost,
+  SocialMediaProfile,
+  SocialMediaSearchResult,
+} from '../../services/social-media-search.service';
 import { SocialMediaPostCard } from '../social-media-post-card/social-media-post-card';
 import { SocialMediaProfileCard } from '../social-media-profile-card/social-media-profile-card';
 
@@ -59,7 +63,7 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
               {isProfileSearch ? 'Matching Profiles' : 'Recent Posts'} ({resultItems.length}):
             </h4>
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {resultItems.map((item) => {
+              {resultItems.map((item: SocialMediaProfile | SocialMediaPost) => {
                 if (isProfileSearch && allProfiles) {
                   const profile = item as (typeof allProfiles)[0];
                   return (

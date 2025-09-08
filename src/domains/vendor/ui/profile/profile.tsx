@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import type { Vendor } from '../../entities/vendor';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import Link from '../../../../shared/components/link/link';
-import ButtonContainer from '../button-container/button-container';
 import { useScheduleCrawler } from '../../../discovery/services/useScheduleCrawler';
 import { ScheduleCard } from '../../../discovery/ui/schedule-card/schedule-card';
 import Card from '../../../../shared/components/card/card';
+import FollowContainer from '../../../../shared/components/follow-container/follow-container';
 
 export default function Profile() {
   const { vendorId } = useParams<{ vendorId: string }>();
@@ -85,7 +85,7 @@ export default function Profile() {
       </div>
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{vendor.name}</h1>
-        <ButtonContainer vendorId={vendor.id} />
+        <FollowContainer vendorId={vendor.id} />
       </div>
 
       {/* Banner Section*/}

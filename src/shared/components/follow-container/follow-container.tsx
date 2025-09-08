@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import Button from '../../../../shared/components/button/button';
 
-export default function ButtonContainer({
+export default function FollowContainer({
   vendorId,
   initialFollowState = false,
 }: FollowButtonProps) {
@@ -13,7 +12,16 @@ export default function ButtonContainer({
     // updateFollowStatus(vendorId, !isFollowing);
     console.log(vendorId);
   };
-  return <Button onClick={handleFollowToggle}>{isFollowing ? 'Following' : 'Follow'}</Button>;
+  return (
+    <button
+      onClick={handleFollowToggle}
+      className={`p-1 rounded-full transition-all duration-200 ${
+        isFollowing ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'
+      }`}
+    >
+      {isFollowing ? '❤️' : '🤍'}
+    </button>
+  );
 }
 
 interface FollowButtonProps {

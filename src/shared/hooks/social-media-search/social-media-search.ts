@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import {
   socialMediaSearchService,
+  type SearchLog,
   type SocialMediaSearchRequest,
   type SocialMediaSearchResult,
-  type SearchLog,
-} from '../services/social-media-search.service';
+} from '../../../domains/discovery/services/social-media-search.service';
 
 interface UseSocialMediaSearchReturn {
   isLoading: boolean;

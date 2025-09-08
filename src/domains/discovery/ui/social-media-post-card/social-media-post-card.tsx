@@ -23,7 +23,7 @@ export function SocialMediaPostCard({ post }: SocialMediaPostCardProps) {
     };
     return colors[platform.toLowerCase() as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
-
+  console.log(post);
   return (
     <div className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
