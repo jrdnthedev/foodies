@@ -1,27 +1,30 @@
+import { useCallback, useEffect } from 'react';
 import Card from '../../../../shared/components/card/card';
-import Link from '../../../../shared/components/link/link';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import type { Vendor } from '../../entities/vendor';
-import useFetchVendors from '../../services/useFetchVendors';
+import { useVendorStore } from '../../state/state';
+import { useNavigate } from 'react-router-dom';
 
 export default function VendorList() {
-  const { vendors, loading, error, pagination, refetch } = useFetchVendors({
-    page: 1,
-    limit: 10,
-  });
+  const { vendors, isLoading, error, filters, fetchVendors, selectVendorById } = useVendorStore();
+  const navigate = useNavigate();
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors, filters]);
 
-  if (loading) {
+  const handleVendorClick = useCallback(
+    (vendorId: string) => {
+      selectVendorById(vendorId);
+      navigate(`/vendor/${vendorId}`);
+    },
+    [selectVendorById]
+  );
+
+  if (isLoading) {
     return <LoadingStencil />;
   }
 
-  if (error) {
-    return (
-      <div>
-        <p>Error: {error}</p>
-        <button onClick={refetch}>Retry</button>
-      </div>
-    );
-  }
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>
@@ -37,10 +40,7 @@ export default function VendorList() {
             return (
               <li key={vendor.id}>
                 <Card>
-                  <Link
-                    path={`/vendor/${vendor.id}`}
-                    styles="block hover:bg-gray-50 transition-colors duration-200"
-                  >
+                  <button onClick={() => handleVendorClick(vendor.id)}>
                     <div className="rounded-lg">
                       <img src="/salad.jpg" alt="Banner" />
                     </div>
@@ -68,19 +68,11 @@ export default function VendorList() {
                         <span className="text-green-600 font-medium">Active</span>
                       </div>
                     )}
-                  </Link>
+                  </button>
                 </Card>
               </li>
             );
           })}
-
-          {pagination && (
-            <div>
-              <p className="text-xs text-gray-500 italic">
-                Page {pagination.page} of {pagination.totalPages}({pagination.total} total vendors)
-              </p>
-            </div>
-          )}
         </ul>
       )}
     </>
