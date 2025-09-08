@@ -1,5 +1,6 @@
 import Card from '../../../../shared/components/card/card';
 import type { SocialMediaProfile } from '../../services/social-media-search.service';
+import FollowContainer from '../../../../shared/components/follow-container/follow-container';
 
 interface SocialMediaProfileCardProps {
   profile: SocialMediaProfile;
@@ -42,7 +43,7 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
         return 'bg-gray-500';
     }
   };
-
+  console.log(profile);
   return (
     <Card>
       <div className="flex flex-col gap-2">
@@ -71,9 +72,9 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
             </div>
           </div>
           {/* Header */}
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
+              <h3 className="text-sm font-medium text-gray-900 truncate ">
                 {profile.displayName || profile.username}
               </h3>
               {profile.verified && (
@@ -96,7 +97,10 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
           </div>
           <div className="flex items-center gap-1">
             <span className="text-lg">{getPlatformIcon(profile.platform)}</span>
-            <span className="text-xs text-gray-500 capitalize">{profile.platform}</span>
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500 capitalize">{profile.platform}</span>
+              <FollowContainer vendorId={profile.id} />
+            </div>
           </div>
         </div>
 
