@@ -20,9 +20,6 @@ export function SocialMediaSearch({
     'YOUTUBE',
   ]);
   const [searchType, setSearchType] = useState<'posts' | 'profiles'>('posts');
-  // const [maxPosts, setMaxPosts] = useState(20);
-  // const [maxProfiles, setMaxProfiles] = useState(10);
-  // const [includeHashtags, setIncludeHashtags] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const platforms = [
@@ -40,9 +37,6 @@ export function SocialMediaSearch({
       businessName: businessName.trim(),
       platforms: selectedPlatforms,
       searchType,
-      // maxPosts: searchType === 'posts' ? maxPosts : undefined,
-      // maxProfiles: searchType === 'profiles' ? maxProfiles : undefined,
-      // includeHashtags: searchType === 'posts' ? includeHashtags : false,
     });
   };
 

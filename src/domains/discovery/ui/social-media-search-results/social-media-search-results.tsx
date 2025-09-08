@@ -39,9 +39,6 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
         </div>
       </div>
 
-      {/* Platform Summary */}
-      {/* a */}
-
       {/* Error Messages */}
       {summary.errors.length > 0 && (
         <div className="p-4 border-b bg-yellow-50">
