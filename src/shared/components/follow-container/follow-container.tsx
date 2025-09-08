@@ -1,16 +1,27 @@
 import { useState } from 'react';
+import { useVendorStore } from '../../../domains/vendor/state/state';
+import type { Vendor } from '../../../domains/vendor/entities/vendor';
+import { useNavigate } from 'react-router-dom';
 
-export default function FollowContainer({
-  vendorId,
-  initialFollowState = false,
-}: FollowButtonProps) {
+export default function FollowContainer({ vendor, initialFollowState = false }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowState);
+  const { addVendor, removeVendor, followedVendors } = useVendorStore();
+  const navigate = useNavigate();
 
   const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
-    // TODO: Add API call to update follow status
-    // updateFollowStatus(vendorId, !isFollowing);
-    console.log(vendorId);
+    const newFollowState = !isFollowing;
+    setIsFollowing(newFollowState);
+
+    if (newFollowState) {
+      // User is now following - add vendor to store
+      addVendor(vendor);
+    } else {
+      // User is unfollowing - remove vendor from store
+      removeVendor(vendor.id);
+      navigate(`/vendor-dashboard`);
+    }
+
+    console.log('Follow state:', newFollowState, followedVendors);
   };
   return (
     <button
@@ -25,6 +36,6 @@ export default function FollowContainer({
 }
 
 interface FollowButtonProps {
-  vendorId: string;
+  vendor: Vendor;
   initialFollowState?: boolean;
 }
