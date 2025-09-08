@@ -36,6 +36,7 @@ export default function Profile() {
     loadVendor();
   }, [vendorId, selectedVendor, selectVendorById]);
 
+  console.log(selectedVendor);
   if (isLoading) {
     return <LoadingStencil />;
   }
@@ -74,7 +75,10 @@ export default function Profile() {
       </div>
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{selectedVendor.name}</h1>
-        <FollowContainer vendor={selectedVendor} />
+        <FollowContainer
+          vendor={selectedVendor}
+          initialFollowState={selectedVendor.id === vendorId}
+        />
       </div>
 
       {/* Banner Section*/}

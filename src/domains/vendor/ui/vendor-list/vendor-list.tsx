@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import Card from '../../../../shared/components/card/card';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import type { Vendor } from '../../entities/vendor';
@@ -6,18 +6,15 @@ import { useVendorStore } from '../../state/state';
 import { useNavigate } from 'react-router-dom';
 
 export default function VendorList() {
-  const { vendors, isLoading, error, filters, fetchVendors, selectVendorById } = useVendorStore();
+  const { followedVendors, isLoading, error, selectVendor } = useVendorStore();
   const navigate = useNavigate();
-  useEffect(() => {
-    fetchVendors();
-  }, [fetchVendors, filters]);
 
   const handleVendorClick = useCallback(
-    (vendorId: string) => {
-      selectVendorById(vendorId);
-      navigate(`/vendor/${vendorId}`);
+    (vendor: Vendor) => {
+      selectVendor(vendor);
+      navigate(`/vendor/${vendor.id}`);
     },
-    [selectVendorById]
+    [selectVendor]
   );
 
   if (isLoading) {
@@ -28,19 +25,23 @@ export default function VendorList() {
 
   return (
     <>
-      {vendors.length === 0 ? (
+      {followedVendors.length === 0 ? (
         <Card>
           <p>No vendors found.</p>
         </Card>
       ) : (
         <ul className="flex flex-col gap-4">
-          {vendors.map((vendor: Vendor) => {
+          {followedVendors.map((vendor: Vendor) => {
             const scheduleCount = vendor.schedule?.length || 0;
             const hasSchedules = scheduleCount > 0;
+            console.log(vendor);
             return (
               <li key={vendor.id}>
                 <Card>
-                  <button onClick={() => handleVendorClick(vendor.id)}>
+                  <button
+                    onClick={() => handleVendorClick(vendor)}
+                    className="block hover:bg-gray-50 transition-colors duration-200"
+                  >
                     <div className="rounded-lg">
                       <img src="/salad.jpg" alt="Banner" />
                     </div>
