@@ -52,12 +52,11 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
       name: profile.displayName || profile.username,
       type: 'social-media', // or determine based on profile content
       location: {
-        // You'll need to provide default values or extract from profile.metadata?.location
         address: profile.metadata?.location || '',
         lat: 0,
         lng: 0,
       },
-      schedule: [], // Empty array as social media profiles don't have schedules
+      schedule: [],
       socialLinks: {
         instagram: profile.platform === 'instagram' ? profile.profileUrl : undefined,
         twitter: profile.platform === 'twitter' ? profile.profileUrl : null,

@@ -53,7 +53,6 @@ export default function VendorList() {
             .map((vendor: Vendor) => {
               const scheduleCount = vendor.schedule?.length || 0;
               const hasSchedules = scheduleCount > 0;
-              console.log(vendor);
               return (
                 <li key={vendor.id}>
                   <Card>
