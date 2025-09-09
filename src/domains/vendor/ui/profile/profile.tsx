@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import LoadingStencil from '../../../../shared/components/loading-stencil/loading-stencil';
 import Link from '../../../../shared/components/link/link';
-import { useScheduleCrawler } from '../../../discovery/services/useScheduleCrawler';
+import { useScheduleCrawler } from '../../logic/schedule-crawler/use-schedule-crawler';
 import { ScheduleCard } from '../../../discovery/ui/schedule-card/schedule-card';
 import Card from '../../../../shared/components/card/card';
 import FollowContainer from '../../../../shared/components/follow-container/follow-container';
