@@ -6,9 +6,9 @@ import type {
   ParseTestResponse,
   HealthCheckResponse,
   ScheduleAnalytics,
-  Schedule,
 } from '../../../shared/types/schedule-crawler';
 import type { ApiResponse } from '../../../shared/types/api';
+import type { Schedule } from '../../vendor/entities/schedule';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
