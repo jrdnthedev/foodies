@@ -2,6 +2,7 @@ import Card from '../../../../shared/components/card/card';
 import type { SocialMediaProfile } from '../../services/social-media-search.service';
 import FollowContainer from '../../../../shared/components/follow-container/follow-container';
 import type { Vendor } from '../../../vendor/entities/vendor';
+import { generateUniqueId } from '../../../../shared/lib/lib';
 
 interface SocialMediaProfileCardProps {
   profile: SocialMediaProfile;
@@ -44,19 +45,18 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
         return 'bg-gray-500';
     }
   };
-
   const convertToVendor = (profile: SocialMediaProfile): Vendor => {
+    const id = generateUniqueId(profile);
     return {
-      id: profile.id || `${profile.platform}-${profile.username}`,
+      id: id,
       name: profile.displayName || profile.username,
       type: 'social-media', // or determine based on profile content
       location: {
-        // You'll need to provide default values or extract from profile.metadata?.location
         address: profile.metadata?.location || '',
         lat: 0,
         lng: 0,
       },
-      schedule: [], // Empty array as social media profiles don't have schedules
+      schedule: [],
       socialLinks: {
         instagram: profile.platform === 'instagram' ? profile.profileUrl : undefined,
         twitter: profile.platform === 'twitter' ? profile.profileUrl : null,

@@ -1,3 +1,4 @@
+import { generateUniqueId } from '../../../../shared/lib/lib';
 import type {
   SocialMediaPost,
   SocialMediaProfile,
@@ -67,10 +68,7 @@ export function SocialMediaSearchResults({ result, onClose }: SocialMediaSearchR
                 if (isProfileSearch && allProfiles) {
                   const profile = item as (typeof allProfiles)[0];
                   return (
-                    <SocialMediaProfileCard
-                      key={`${profile.platform}-${profile.id}`}
-                      profile={profile}
-                    />
+                    <SocialMediaProfileCard key={generateUniqueId(profile)} profile={profile} />
                   );
                 } else if (!isProfileSearch && allPosts) {
                   const post = item as (typeof allPosts)[0];
