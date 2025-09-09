@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
-import { scheduleCrawlerService } from '../services/scheduleCrawlerService';
+import { scheduleCrawlerService } from '../../../discovery/services/schedule-crawler-service';
 import type {
   ScheduleCrawlResult,
   ScheduleProcessingRequest,
   ScheduleAnalytics,
   HealthCheckResponse,
   ParseTestResponse,
-} from '../../../shared/types/schedule-crawler';
-import type { Schedule } from '../../vendor/entities/schedule';
+} from '../../../../shared/types/schedule-crawler';
+import type { Schedule } from '../../entities/schedule';
 
 interface UseScheduleCrawlerReturn {
   // State
