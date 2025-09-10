@@ -15,17 +15,22 @@ A full-stack food vendor discovery application built with React + TypeScript + V
 
 - RESTful API with Express.js
 - TypeScript for type safety
-- Social media crawler for content discovery
-- Food vendor management system
+- **Social media crawler with profile and post search capabilities**
+- **Multi-platform support (Twitter/X, Instagram, Reddit, YouTube)**
+- Food vendor management system with MongoDB integration
+- **Database migration system for schema management**
 - Comprehensive error handling and logging
 
 ### Social Media Crawler
 
 - Multi-platform social media content crawling
 - Supported platforms: Twitter/X, Instagram, Reddit, YouTube
+- **Dual search modes: Post search and Profile search**
 - API-based and web scraping approaches
-- Configurable search terms, hashtags, and user targeting
+- **Configurable search by keywords, hashtags, usernames, or profiles**
+- **Rich profile data extraction with metrics and verification status**
 - Rate limiting and error handling
+- **Hybrid approach with automatic API/scraping fallback**
 
 ## Project Structure
 
