@@ -34,6 +34,7 @@ interface VendorActions {
   // Data actions
   setVendors: (vendors: Vendor[]) => void;
   addVendor: (vendor: Vendor) => void;
+  followVendor: (vendor: Vendor) => void;
   updateVendor: (id: string, updates: Partial<Vendor>) => void;
   removeVendor: (id: string) => void;
 
@@ -81,6 +82,11 @@ export const useVendorStore = create<VendorState & VendorActions>()(
       setVendors: (vendors: Vendor[]) => set({ vendors }),
 
       addVendor: (vendor: Vendor) =>
+        set((state: VendorState & VendorActions) => ({
+          vendors: [...state.vendors, vendor],
+        })),
+
+      followVendor: (vendor: Vendor) =>
         set((state: VendorState & VendorActions) => ({
           followedVendors: [...state.followedVendors, vendor],
         })),
