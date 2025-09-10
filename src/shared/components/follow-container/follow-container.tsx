@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function FollowContainer({ vendor, initialFollowState = false }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowState);
-  const { addVendor, removeVendor, followedVendors } = useVendorStore();
+  const { followVendor, removeVendor, followedVendors } = useVendorStore();
   const navigate = useNavigate();
 
   const handleFollowToggle = () => {
@@ -14,7 +14,7 @@ export default function FollowContainer({ vendor, initialFollowState = false }: 
 
     if (newFollowState) {
       // User is now following - add vendor to store
-      addVendor(vendor);
+      followVendor(vendor);
     } else {
       // User is unfollowing - remove vendor from store
       removeVendor(vendor.id);
