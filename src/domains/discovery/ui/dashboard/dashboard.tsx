@@ -64,13 +64,16 @@ export default function Dashboard() {
       {!searchResult && !error && !isSearching && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-800 mb-2">How it works:</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Enter a business name to search across multiple social platforms</li>
-            <li>• Choose which platforms to include in your search</li>
-            <li>• Adjust search settings for more targeted results</li>
-            <li>• All searches are logged in your activity history</li>
-            <li>• Click on individual posts to view them on their original platform</li>
-          </ul>
+          <ol
+            className="text-sm text-blue-700 space-y-1 pl-[17px]"
+            style={{ listStyleType: 'lower-roman' }}
+          >
+            <li>Enter a business name to search across multiple social platforms</li>
+            <li>Choose which platforms to include in your search</li>
+            <li>Adjust search settings for more targeted results</li>
+            <li>All searches are logged in your activity history</li>
+            <li>Click on individual posts to view them on their original platform</li>
+          </ol>
         </div>
       )}
     </section>
