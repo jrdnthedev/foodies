@@ -7,6 +7,7 @@ A full-stack food vendor discovery application built with React + TypeScript + V
 ### Frontend (React + TypeScript + Vite)
 
 - Modern React application with TypeScript
+- **Zustand for domain-driven state management**
 - Responsive design with modular component architecture
 - Domain-driven structure for scalability
 - Testing setup with comprehensive test suites
@@ -234,6 +235,7 @@ BREAKING CHANGE: vendor API now returns data in new format"
 - **React 18** - Modern React with hooks and concurrent features
 - **TypeScript** - Type safety and better developer experience
 - **Vite** - Fast build tool and development server
+- **Zustand** - Lightweight state management for domain stores
 - **ESLint & Prettier** - Code linting and formatting
 
 ### Backend
@@ -241,12 +243,35 @@ BREAKING CHANGE: vendor API now returns data in new format"
 - **Express.js** - Web application framework
 - **TypeScript** - Type safety for backend code
 - **Node.js** - JavaScript runtime
+- **MongoDB** - Document database for data persistence
 
 ### Social Media Crawler
 
 - **Cheerio** - Server-side HTML parsing
 - **Puppeteer** - Web scraping and automation
 - **Platform APIs** - Direct integration with social media APIs
+
+## State Management
+
+This application uses **Zustand** for domain-driven state management:
+
+- **Domain-specific stores** - Each domain (vendor, user, discovery) has its own Zustand store
+- **Lightweight and performant** - Minimal boilerplate with TypeScript support
+- **Currently implemented** - Vendor domain with full CRUD operations
+- **Expanding coverage** - Will be implemented across all domains for consistent state management
+
+### Example Store Usage
+
+```typescript
+// Vendor store example (currently implemented)
+import { useVendorStore } from '@/domains/vendor/store/vendorStore';
+
+const VendorComponent = () => {
+  const { vendors, loading, fetchVendors, addVendor } = useVendorStore();
+
+  // Use vendor state and actions
+};
+```
 
 ## Environment Variables
 
