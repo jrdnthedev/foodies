@@ -110,7 +110,7 @@ export const useVendorStore = create<VendorState & VendorActions>()(
           followedVendors: state.followedVendors.filter((vendor: Vendor) => vendor.id !== id),
         })),
 
-      selectVendor: (vendor: Vendor) => set({ selectedVendor: vendor }),
+      selectVendor: (vendor: Vendor | null) => set({ selectedVendor: vendor }),
 
       getVendorById: (id: string) => {
         const { vendors } = get();
@@ -127,11 +127,12 @@ export const useVendorStore = create<VendorState & VendorActions>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { type } = get().filters;
+          const { type, search } = get().filters;
           const queryParams = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
             ...(type && { type }),
+            ...(search && { search }),
           });
 
           const response = await fetch(`/api/vendors?${queryParams}`);
@@ -171,6 +172,28 @@ export const useVendorStore = create<VendorState & VendorActions>()(
           set({
             error: error instanceof Error ? error.message : 'Failed to create vendor',
             isCreating: false,
+          });
+        }
+      },
+      updateVendorById: async (id: string, updates: Partial<Vendor>) => {
+        set({ isUpdating: true, error: null });
+
+        try {
+          const response = await fetch(`/api/vendors/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+
+          if (!response.ok) throw new Error('Failed to update vendor');
+
+          const result = await response.json();
+          get().updateVendor(id, result.data);
+          set({ isUpdating: false });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to update vendor',
+            isUpdating: false,
           });
         }
       },
