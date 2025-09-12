@@ -42,6 +42,7 @@ export function useScheduleCrawler(): UseScheduleCrawlerReturn {
     try {
       const result = await scheduleCrawlerService.crawlVendorSchedules(request);
       setSchedules(result.schedules);
+      console.log(result);
       if (result.analytics) {
         setAnalytics(result.analytics);
       }

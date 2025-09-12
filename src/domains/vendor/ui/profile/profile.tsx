@@ -13,7 +13,7 @@ export default function Profile() {
   const { selectedVendor, selectVendorById, isLoading } = useVendorStore();
   const [error, setError] = useState<string | null>(null);
   const previousPagePath = '/vendor-dashboard';
-  const { schedules, loadAnalytics } = useScheduleCrawler();
+  const { schedules, crawlVendorSchedules } = useScheduleCrawler();
 
   useEffect(() => {
     const loadVendor = async () => {
@@ -152,7 +152,19 @@ export default function Profile() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">Schedule</h2>
           <button
-            onClick={() => loadAnalytics(selectedVendor.id)}
+            onClick={() =>
+              crawlVendorSchedules({
+                vendorId: selectedVendor.id,
+                vendorName: selectedVendor.name,
+                socialHandle:
+                  selectedVendor.socialLinks.instagram ??
+                  selectedVendor.socialLinks.twitter ??
+                  selectedVendor.socialLinks.facebook ??
+                  undefined,
+                searchTerms: [selectedVendor.name],
+                hashtags: [`#${selectedVendor.name.replace(/\s+/g, '')}`],
+              })
+            }
             className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700"
           >
             🔍 Find Latest Schedules
@@ -168,7 +180,6 @@ export default function Profile() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {selectedVendor.schedule.map((schedule, index) => {
-                console.log(schedule);
                 return (
                   <Card key={`confirmed-${schedule.vendorId}-${schedule.date}-${index}`}>
                     <ScheduleCard
