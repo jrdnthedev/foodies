@@ -13,7 +13,7 @@ export default function Profile() {
   const { selectedVendor, selectVendorById, isLoading } = useVendorStore();
   const [error, setError] = useState<string | null>(null);
   const previousPagePath = '/vendor-dashboard';
-  const { schedules, loadAnalytics } = useScheduleCrawler();
+  const { schedules, crawlVendorSchedules } = useScheduleCrawler();
 
   useEffect(() => {
     const loadVendor = async () => {
@@ -99,7 +99,7 @@ export default function Profile() {
       {(selectedVendor.socialLinks.instagram ||
         selectedVendor.socialLinks.twitter ||
         selectedVendor.socialLinks.facebook ||
-        selectedVendor.socialLinks.website) && (
+        selectedVendor.socialLinks.reddit) && (
         <div className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Social Links</h2>
           <div className="flex gap-4">
@@ -133,14 +133,14 @@ export default function Profile() {
                 Facebook
               </a>
             )}
-            {selectedVendor.socialLinks.website && (
+            {selectedVendor.socialLinks.reddit && (
               <a
-                href={selectedVendor.socialLinks.website}
+                href={selectedVendor.socialLinks.reddit}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700"
               >
-                Website
+                reddit
               </a>
             )}
           </div>
@@ -152,7 +152,19 @@ export default function Profile() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">Schedule</h2>
           <button
-            onClick={() => loadAnalytics(selectedVendor.id)}
+            onClick={() =>
+              crawlVendorSchedules({
+                vendorId: selectedVendor.id,
+                vendorName: selectedVendor.name,
+                socialHandle:
+                  selectedVendor.socialLinks.instagram ??
+                  selectedVendor.socialLinks.twitter ??
+                  selectedVendor.socialLinks.facebook ??
+                  undefined,
+                searchTerms: [selectedVendor.name],
+                hashtags: [`#${selectedVendor.name.replace(/\s+/g, '')}`],
+              })
+            }
             className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700"
           >
             🔍 Find Latest Schedules
@@ -168,7 +180,6 @@ export default function Profile() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {selectedVendor.schedule.map((schedule, index) => {
-                console.log(schedule);
                 return (
                   <Card key={`confirmed-${schedule.vendorId}-${schedule.date}-${index}`}>
                     <ScheduleCard

@@ -78,8 +78,8 @@ export default function VendorList() {
                         </span>
                       </div>
 
-                      <p className="text-sm text-gray-500">{vendor.type}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 text-left">{vendor.type}</p>
+                      <p className="text-sm text-gray-500 text-left">
                         <span>📍</span>
                         {vendor.location.address}
                       </p>

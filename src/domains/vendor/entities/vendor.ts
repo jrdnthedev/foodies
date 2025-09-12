@@ -8,10 +8,10 @@ export interface Vendor {
   location: Location;
   schedule: Schedule[];
   socialLinks: {
-    instagram?: string;
+    instagram?: string | null;
     twitter?: string | null;
     facebook?: string | null;
-    website?: string | null;
+    reddit?: string | null;
   };
   claimedBy: string | null;
   createdAt?: Date;

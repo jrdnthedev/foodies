@@ -60,10 +60,80 @@ interface VendorActions {
   reset: () => void;
 }
 
+const mockVendors: Vendor[] = [
+  {
+    id: 'vendor_001',
+    name: 'Taco Time',
+    type: 'Mexican',
+    location: {
+      lat: 43.6532,
+      lng: -79.3832,
+      address: '123 Queen St W, Toronto, ON',
+    },
+    schedule: [
+      {
+        vendorId: 'vendor_001',
+        date: '2025-08-29',
+        startTime: '11:30',
+        endTime: '14:00',
+        location: 'Downtown Park',
+        source: 'Instagram',
+        confidence: 0.85, // High confidence score
+      },
+    ],
+    socialLinks: {
+      instagram: 'https://instagram.com/tacotime_to',
+      twitter: 'https://twitter.com/tacotime_to',
+    },
+    claimedBy: null,
+  },
+  {
+    id: 'vendor_002',
+    name: 'Rolling Sushi',
+    type: 'Japanese',
+    location: {
+      lat: 43.651,
+      lng: -79.347,
+      address: '145 Oak St, Toronto, ON',
+    },
+    schedule: [
+      {
+        vendorId: 'vendor_002',
+        date: '2025-08-29',
+        startTime: '17:00',
+        endTime: '20:00',
+        location: 'Harbourfront Market',
+        source: 'Twitter',
+        confidence: 0.72, // Medium confidence score
+      },
+    ],
+    socialLinks: {
+      instagram: 'https://instagram.com/rollingsushi',
+      twitter: 'https://twitter.com/rollingsushi',
+    },
+    claimedBy: 'vendor_user_002',
+  },
+  {
+    id: 'vendor_003',
+    name: 'Curry in a Hurry',
+    type: 'Indian',
+    location: {
+      lat: 43.6629,
+      lng: -79.3957,
+      address: '456 Bloor St W, Toronto, ON',
+    },
+    schedule: [],
+    socialLinks: {
+      instagram: 'https://instagram.com/curryinahurry',
+      twitter: null,
+    },
+    claimedBy: null,
+  },
+];
 const initialState: VendorState = {
   vendors: [],
   selectedVendor: null,
-  followedVendors: [],
+  followedVendors: mockVendors,
   pagination: null,
   isLoading: false,
   isCreating: false,
