@@ -58,10 +58,10 @@ export function SocialMediaProfileCard({ profile }: SocialMediaProfileCardProps)
       },
       schedule: [],
       socialLinks: {
-        instagram: profile.platform === 'instagram' ? profile.profileUrl : undefined,
+        instagram: profile.platform === 'instagram' ? profile.profileUrl : null,
         twitter: profile.platform === 'twitter' ? profile.profileUrl : null,
         facebook: profile.platform === 'facebook' ? profile.profileUrl : null,
-        website: profile.platform === 'website' ? profile.profileUrl : null,
+        reddit: profile.platform === 'reddit' ? profile.profileUrl : null,
       },
       claimedBy: null,
       createdAt: new Date(),

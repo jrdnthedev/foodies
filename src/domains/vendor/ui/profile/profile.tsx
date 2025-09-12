@@ -99,7 +99,7 @@ export default function Profile() {
       {(selectedVendor.socialLinks.instagram ||
         selectedVendor.socialLinks.twitter ||
         selectedVendor.socialLinks.facebook ||
-        selectedVendor.socialLinks.website) && (
+        selectedVendor.socialLinks.reddit) && (
         <div className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Social Links</h2>
           <div className="flex gap-4">
@@ -133,14 +133,14 @@ export default function Profile() {
                 Facebook
               </a>
             )}
-            {selectedVendor.socialLinks.website && (
+            {selectedVendor.socialLinks.reddit && (
               <a
-                href={selectedVendor.socialLinks.website}
+                href={selectedVendor.socialLinks.reddit}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700"
               >
-                Website
+                reddit
               </a>
             )}
           </div>
