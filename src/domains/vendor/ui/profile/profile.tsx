@@ -21,7 +21,6 @@ export default function Profile() {
         setError('No vendor ID provided');
         return;
       }
-
       // If we don't have the selected vendor or it's different from the URL param
       if (!selectedVendor || selectedVendor.id !== vendorId) {
         try {
