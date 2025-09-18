@@ -65,7 +65,7 @@ export class ScheduleCrawlerService {
       // Collect all posts
       const allPosts: SocialMediaPost[] = [];
       for (const result of Object.values(crawlResults)) {
-        allPosts.push(...result.posts);
+        allPosts.push(...(result.posts ?? []));
         if (result.errors) {
           errors.push(...result.errors);
         }
@@ -231,7 +231,7 @@ export class ScheduleCrawlerService {
     const platformBreakdown: Record<SocialPlatform, number> = {} as Record<SocialPlatform, number>;
 
     for (const [platform, result] of Object.entries(crawlResults)) {
-      platformBreakdown[platform as SocialPlatform] = result.posts.length;
+      platformBreakdown[platform as SocialPlatform] = result.posts?.length ?? 0;
     }
 
     // Calculate average confidence of extracted schedules
