@@ -7,13 +7,14 @@ import { ScheduleCard } from '../../../discovery/ui/schedule-card/schedule-card'
 import Card from '../../../../shared/components/card/card';
 import FollowContainer from '../../../../shared/components/follow-container/follow-container';
 import { useVendorStore } from '../../state/state';
+import SearchingSpinner from '../../../../shared/components/searching-spinner/searching-spinner';
 
 export default function Profile() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const { selectedVendor, selectVendorById, isLoading } = useVendorStore();
   const [error, setError] = useState<string | null>(null);
   const previousPagePath = '/vendor-dashboard';
-  const { schedules, crawlVendorSchedules } = useScheduleCrawler();
+  const { schedules, crawlVendorSchedules, loading } = useScheduleCrawler();
 
   useEffect(() => {
     const loadVendor = async () => {
@@ -166,7 +167,7 @@ export default function Profile() {
             }
             className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700"
           >
-            🔍 Find Latest Schedules
+            {loading ? <SearchingSpinner /> : ' 🔍 Find Latest Schedules'}
           </button>
         </div>
 
@@ -219,7 +220,7 @@ export default function Profile() {
         )}
 
         {/* Empty State */}
-        {selectedVendor.schedule.length === 0 && schedules.length === 0 && (
+        {selectedVendor.schedule.length === 0 && schedules.length === 0 && !loading && (
           <div className="flex flex-col gap-2 border-b border-gray-200 pb-2">
             <p className="text-sm text-gray-500">No scheduled events found</p>
             <p className="text-xs text-gray-400">
@@ -229,7 +230,7 @@ export default function Profile() {
         )}
 
         {/* Loading State for Discovery */}
-        {isLoading && (
+        {loading && (
           <div className="text-center py-4">
             <div className="inline-flex items-center">
               <svg
