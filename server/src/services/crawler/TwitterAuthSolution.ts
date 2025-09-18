@@ -213,7 +213,10 @@ export class TwitterTestHelper {
       const crawler = TwitterAuthSolution.createAuthenticatedCrawler(testConfig);
       const result = await crawler.crawl();
 
-      if (result.posts.length > 0 || (result.errors && result.errors.length === 0)) {
+      if (
+        (result.posts && result.posts.length > 0) ||
+        (result.errors && result.errors.length === 0)
+      ) {
         return {
           success: true,
           message: '✅ Twitter API connection successful',
