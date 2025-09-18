@@ -13,10 +13,8 @@ export default function FollowContainer({ vendor, initialFollowState = false }: 
     setIsFollowing(newFollowState);
 
     if (newFollowState) {
-      // User is now following - add vendor to store
       followVendor(vendor);
     } else {
-      // User is unfollowing - remove vendor from store
       removeVendor(vendor.id);
       navigate(`/vendor-dashboard`);
     }
