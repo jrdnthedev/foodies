@@ -20,7 +20,6 @@ export default function Dashboard() {
         </p>
       </div>
       {/* search container */}
-
       <Card>
         {/* Search Form */}
         <SocialMediaSearch

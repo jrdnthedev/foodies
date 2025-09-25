@@ -67,86 +67,93 @@ export function SocialMediaSearch({
         </div>
 
         {/* Search Type Selection */}
-        <div className="flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">
+        <fieldset>
+          <legend className="text-sm font-medium text-gray-700 mb-2">
             What are you looking for?
-          </label>
-          <div className="flex gap-2">
-            <label
-              className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
-                searchType === 'posts'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <input
-                type="radio"
-                name="searchType"
-                value="posts"
-                checked={searchType === 'posts'}
-                onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
-                className="sr-only"
-                disabled={isSearching}
-              />
-              <div className="flex-1">
-                <div className="font-medium text-sm">📝 Posts & Content</div>
-                <div className="text-xs text-gray-600 mt-1">
-                  Find recent posts mentioning the business
-                </div>
-              </div>
-            </label>
-
-            <label
-              className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
-                searchType === 'profiles'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <input
-                type="radio"
-                name="searchType"
-                value="profiles"
-                checked={searchType === 'profiles'}
-                onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
-                className="sr-only"
-                disabled={isSearching}
-              />
-              <div className="flex-1">
-                <div className="font-medium text-sm">👥 User Profiles</div>
-                <div className="text-xs text-gray-600 mt-1">Find accounts with matching names</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Platform Selection */}
-        <div className="flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">Platforms to Search</label>
-          <div className="grid grid-cols-2 gap-2">
-            {platforms.map((platform) => (
+          </legend>
+          <div className="flex flex-col gap-2" aria-labelledby="searchtype-legend">
+            <div className="flex gap-2">
               <label
-                key={platform.id}
-                className={`flex items-center p-2 border rounded cursor-pointer transition-colors ${
-                  selectedPlatforms.includes(platform.id)
+                className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
+                  searchType === 'posts'
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
               >
                 <input
-                  type="checkbox"
-                  checked={selectedPlatforms.includes(platform.id)}
-                  onChange={() => togglePlatform(platform.id)}
+                  type="radio"
+                  name="searchType"
+                  value="posts"
+                  checked={searchType === 'posts'}
+                  onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
                   className="sr-only"
                   disabled={isSearching}
                 />
-                <span className="text-lg mr-2">{platform.icon}</span>
-                <span className="text-sm">{platform.name}</span>
+                <div className="flex-1">
+                  <div className="font-medium text-sm">📝 Posts & Content</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Find recent posts mentioning the business
+                  </div>
+                </div>
               </label>
-            ))}
-          </div>
-        </div>
 
+              <label
+                className={`flex items-center p-3 border rounded cursor-pointer transition-colors ${
+                  searchType === 'profiles'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="searchType"
+                  value="profiles"
+                  checked={searchType === 'profiles'}
+                  onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
+                  className="sr-only"
+                  disabled={isSearching}
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">👥 User Profiles</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Find accounts with matching names
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        {/* Platform Selection */}
+        <fieldset>
+          <legend className="block text-sm font-medium text-gray-700 mb-2">
+            Platforms to Search
+          </legend>
+          <div className="flex flex-col gap-2" aria-labelledby="platformtype-legend">
+            <div className="grid grid-cols-2 gap-2">
+              {platforms.map((platform) => (
+                <label
+                  key={platform.id}
+                  className={`flex items-center p-2 border rounded cursor-pointer transition-colors ${
+                    selectedPlatforms.includes(platform.id)
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedPlatforms.includes(platform.id)}
+                    onChange={() => togglePlatform(platform.id)}
+                    className="sr-only"
+                    disabled={isSearching}
+                  />
+                  <span className="text-lg mr-2">{platform.icon}</span>
+                  <span className="text-sm">{platform.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </fieldset>
         {/* Advanced Options Toggle */}
         <button
           type="button"
