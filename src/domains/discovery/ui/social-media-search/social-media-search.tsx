@@ -7,7 +7,11 @@ interface SocialMediaSearchProps {
   isSearching: boolean;
   placeholder?: string;
 }
-
+interface PlatformType {
+  id: string;
+  name: string;
+  icon: string;
+}
 export function SocialMediaSearch({
   onSearch,
   isSearching,
@@ -23,7 +27,7 @@ export function SocialMediaSearch({
   const [searchType, setSearchType] = useState<'posts' | 'profiles'>('posts');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const platforms = [
+  const platforms: PlatformType[] = [
     { id: 'TWITTER', name: 'Twitter/X', icon: '🐦' },
     { id: 'INSTAGRAM', name: 'Instagram', icon: '📷' },
     { id: 'REDDIT', name: 'Reddit', icon: '🤖' },
@@ -42,8 +46,10 @@ export function SocialMediaSearch({
   };
 
   const togglePlatform = (platformId: string) => {
-    setSelectedPlatforms((prev) =>
-      prev.includes(platformId) ? prev.filter((p) => p !== platformId) : [...prev, platformId]
+    setSelectedPlatforms((prev: string[]) =>
+      prev.includes(platformId)
+        ? prev.filter((p: string) => p !== platformId)
+        : [...prev, platformId]
     );
   };
 
@@ -59,7 +65,7 @@ export function SocialMediaSearch({
             id="business-name"
             type="text"
             value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBusinessName(e.target.value)}
             placeholder={placeholder}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSearching}
@@ -85,7 +91,9 @@ export function SocialMediaSearch({
                   name="searchType"
                   value="posts"
                   checked={searchType === 'posts'}
-                  onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchType(e.target.value as 'posts' | 'profiles')
+                  }
                   className="sr-only"
                   disabled={isSearching}
                 />
@@ -109,7 +117,9 @@ export function SocialMediaSearch({
                   name="searchType"
                   value="profiles"
                   checked={searchType === 'profiles'}
-                  onChange={(e) => setSearchType(e.target.value as 'posts' | 'profiles')}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchType(e.target.value as 'posts' | 'profiles')
+                  }
                   className="sr-only"
                   disabled={isSearching}
                 />
@@ -131,7 +141,7 @@ export function SocialMediaSearch({
           </legend>
           <div className="flex flex-col gap-2" aria-labelledby="platformtype-legend">
             <div className="grid grid-cols-2 gap-2">
-              {platforms.map((platform) => (
+              {platforms.map((platform: PlatformType) => (
                 <label
                   key={platform.id}
                   className={`flex items-center p-2 border rounded cursor-pointer transition-colors ${
